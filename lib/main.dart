@@ -1,15 +1,28 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:management_stock/core/routing/app_routers.dart';
 import 'package:management_stock/core/routing/routers.dart';
+import 'package:management_stock/core/services/auth_service.dart';
+import 'package:management_stock/cubits/auth/cubit.dart';
 import 'package:management_stock/firebase_options.dart';
 
-void main() async{
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  runApp(MyApp(appRouter: AppRouter()));
+  
+  runApp(
+    MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (_) => AuthCubit(AuthServicesImpl())..checkAuthState(),
+        ),
+      ],
+      child: MyApp(appRouter: AppRouter()),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
