@@ -5,6 +5,7 @@ import 'package:management_stock/screens/customers/customers_screen.dart';
 import 'package:management_stock/screens/deffered/deffered_payments.dart';
 import 'package:management_stock/screens/home/dashboard_screen.dart';
 import 'package:management_stock/screens/login/login_screen.dart';
+import 'package:management_stock/screens/login/register.dart';
 import 'package:management_stock/screens/products/add_product_page.dart';
 import 'package:management_stock/screens/products/products_screen.dart';
 import 'package:management_stock/screens/purchase/purchase_invoice_screen.dart';
@@ -20,6 +21,8 @@ class AppRouter {
           builder: (_) => const LoginScreen(),
           settings: settings,
         );
+      case Routers.registerRoute:
+        return MaterialPageRoute(builder: (_) => const RegisterScreen());
 
       case Routers.homeRoute:
         return MaterialPageRoute(
