@@ -4,22 +4,23 @@ class ApiPaths {
   static String categories() => 'categories/';
   static String products() => 'products/';
   static String product(String productId) => 'products/$productId';
-  static String cartItem(String userId, String cartItemId) =>
-      'users/$userId/cart/$cartItemId';
+  static String suppliers() => 'suppliers/';
+  static String supplier(String supplierId) => 'suppliers/$supplierId';
 
-  static String cartItems(String userId) => 'users/$userId/cart/';
+  static String purchaseInvoices() => 'purchaseInvoices/';
+  static String purchaseInvoice(String invoiceId) =>
+      'purchaseInvoices/$invoiceId';
+  static String customers() => 'customers/';
+  static String customer(String customerId) => 'customers/$customerId';
 
-  static String favouriteProduct(String userId, String productId) =>
-      'users/$userId/favourites/$productId';
+  static String salesInvoices() => 'salesInvoices/';
+  static String salesInvoice(String invoiceId) => 'salesInvoices/$invoiceId';
 
-  static String favouriteProducts(String userId) => 'users/$userId/favourites';
-  static String orders() => 'orders';
-  static String order(String orderId) => 'orders/$orderId';
+  static String posSales() => 'posSales/';
+  static String posSale(String saleId) => 'posSales/$saleId';
 
-  static String announcments() => 'announcments/';
-  static String userOrders(String userId) => 'users/$userId/orders';
-
-  static String paymentCard(String userId, String paymentId) =>
-      'users/$userId/paymentCards/$paymentId';
-  static String paymentCards(String userId) => 'users/$userId/paymentCards/';
+  static String deferredAccounts() => 'deferredAccounts/';
+  static String deferredAccount(String customerId) => 'deferredAccounts/$customerId';
+  static String payments() => 'payments/';
+  static String payment(String paymentId) => 'payments/$paymentId';
 }

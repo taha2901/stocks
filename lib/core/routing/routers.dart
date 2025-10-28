@@ -3,7 +3,9 @@ class Routers {
   static const String registerRoute = '/register';
 
   static const String homeRoute = '/homeRoute';
+  
   static const String addCustomerRoute = '/add-customer';
+  static const String editCustomerRoute = '/editCustomer';
 
 
   static const String productRoute = '/productsRoute';
@@ -15,4 +17,5 @@ class Routers {
   static const String salesInvoiceRoute = '/sales-invoice';
   static const String quickSaleRoute = '/quick-sale';
   static const String deferredAccountsRoute = '/deferred-accounts';
+  static const String reportRoute = '/reports';
 }

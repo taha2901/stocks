@@ -74,6 +74,7 @@ class _CustomInputFieldState extends State<CustomInputField> {
       obscureText: _obscure,
       enabled: widget.enabled,
       readOnly: widget.readOnly,
+
       keyboardType:
           widget.keyboardType ??
           (widget.isNumber ? TextInputType.number : TextInputType.text),
@@ -84,6 +85,7 @@ class _CustomInputFieldState extends State<CustomInputField> {
       validator: widget.validator,
       style: const TextStyle(color: Colors.white),
       decoration: _decoration(context).copyWith(
+        border: InputBorder.none,
         suffixIcon: widget.isPassword
             ? IconButton(
                 icon: Icon(

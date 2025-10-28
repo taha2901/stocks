@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:management_stock/core/widgets/custom_button.dart';
 import 'package:management_stock/core/widgets/custom_text_field.dart';
+import 'package:management_stock/cubits/products/cubit.dart';
+import 'package:management_stock/cubits/products/states.dart';
+import 'package:management_stock/cubits/quick_sales/cubit.dart';
+import 'package:management_stock/cubits/quick_sales/states.dart';
+import 'package:management_stock/models/pos_sales_model.dart';
 import 'package:management_stock/models/product.dart';
 import 'package:management_stock/models/pos_cart_model.dart';
 import 'package:management_stock/models/sales_record.dart';
@@ -17,91 +23,120 @@ class _QuickSaleScreenState extends State<QuickSaleScreen> {
   int selectedTab = 0; // 0 = POS, 1 = Inventory, 2 = Sales History
 
   // 🔹 بيانات المنتجات والسلة وسجل المبيعات
-  List<ProductModel> allProducts = dummyProducts;
+  late final ProductCubit productCubit;
+  late List<ProductModel> allProducts;
   List<POSCartItem> cart = [];
-  List<SaleRecord> salesHistory = [];
+  // List<SaleRecord> salesHistory = [];
+  late final POSSaleCubit posSaleCubit;
+
+  @override
+  void initState() {
+    super.initState();
+    productCubit = context.read<ProductCubit>();
+    posSaleCubit = context.read<POSSaleCubit>();
+    allProducts = productCubit.products;
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF1E2030),
-      appBar: AppBar(
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            const Text(
-              "POS - نقطة البيع",
-              style: TextStyle(color: Colors.white, fontSize: 20),
+    return BlocListener<POSSaleCubit, POSSaleState>(
+      listener: (context, state) {
+        if (state is POSSaleSuccess) {
+          setState(() => cart.clear());
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message),
+              backgroundColor: Colors.green,
             ),
-            const SizedBox(width: 8),
-            Container(
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                color: Colors.blueAccent,
-                borderRadius: BorderRadius.circular(6),
+          );
+        } else if (state is POSSaleError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(state.error), backgroundColor: Colors.red),
+          );
+        }
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xFF1E2030),
+        appBar: AppBar(
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              const Text(
+                "POS - نقطة البيع",
+                style: TextStyle(color: Colors.white, fontSize: 20),
               ),
-              child: const Icon(
-                Icons.credit_card,
-                color: Colors.white,
-                size: 20,
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: Colors.blueAccent,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: const Icon(
+                  Icons.credit_card,
+                  color: Colors.white,
+                  size: 20,
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: const Color(0xFF2C2F48),
+          automaticallyImplyLeading: false,
+        ),
+        body: Column(
+          children: [
+            // 🔹 Tabs
+            Container(
+              color: const Color(0xFF2C2F48),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  _buildTab("سجل المبيعات 📋", 2),
+                  const SizedBox(width: 12),
+                  _buildTab("المخزون", 1),
+                  const SizedBox(width: 12),
+                  _buildTab("نقطة البيع", 0),
+                ],
+              ),
+            ),
+            // 🔹 محتوى التاب
+            Expanded(
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final isDesktop = constraints.maxWidth > 800;
+                  Widget wrappedChild(Widget child) => SingleChildScrollView(
+                    scrollDirection: Axis.vertical,
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          maxWidth: isDesktop ? 1000 : double.infinity,
+                        ),
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: isDesktop ? 40 : 16,
+                            vertical: 16,
+                          ),
+                          child: child,
+                        ),
+                      ),
+                    ),
+                  );
+
+                  if (selectedTab == 0) return wrappedChild(_buildPOSTab());
+                  if (selectedTab == 1) {
+                    return wrappedChild(
+                      _buildInventoryTab(isDesktop: isDesktop),
+                    );
+                  }
+                  return wrappedChild(
+                    _buildSalesHistoryTab(isDesktop: isDesktop),
+                  );
+                },
               ),
             ),
           ],
         ),
-        backgroundColor: const Color(0xFF2C2F48),
-        automaticallyImplyLeading: false,
-      ),
-      body: Column(
-        children: [
-          // 🔹 Tabs
-          Container(
-            color: const Color(0xFF2C2F48),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                _buildTab("سجل المبيعات 📋", 2),
-                const SizedBox(width: 12),
-                _buildTab("المخزون", 1),
-                const SizedBox(width: 12),
-                _buildTab("نقطة البيع", 0),
-              ],
-            ),
-          ),
-          // 🔹 محتوى التاب
-          Expanded(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final isDesktop = constraints.maxWidth > 800;
-                Widget wrappedChild(Widget child) => SingleChildScrollView(
-                  scrollDirection: Axis.vertical,
-                  child: Center(
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        maxWidth: isDesktop ? 1000 : double.infinity,
-                      ),
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: isDesktop ? 40 : 16,
-                          vertical: 16,
-                        ),
-                        child: child,
-                      ),
-                    ),
-                  ),
-                );
-
-                if (selectedTab == 0) return wrappedChild(_buildPOSTab());
-                if (selectedTab == 1) {
-                  return wrappedChild(_buildInventoryTab(isDesktop: isDesktop));
-                }
-                return wrappedChild(
-                  _buildSalesHistoryTab(isDesktop: isDesktop),
-                );
-              },
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -442,27 +477,33 @@ class _QuickSaleScreenState extends State<QuickSaleScreen> {
   }
 
   // 🧱 إتمام عملية البيع
-  void _completeSale() {
+  void _completeSale() async {
+    // if (cart.isEmpty) return;
+
+    // setState(() {
+    //   salesHistory.add(
+    //     SaleRecord(
+    //       id: saleDate.now().millisecondsSinceEpoch.toString(),
+    //       dateTime: DateTime.now(),
+    //       items: List.from(cart),
+    //       // : _calculateTotal(),
+    //     ),
+    //   );
+    //   cart.clear();
+    // });
+
+    // ScaffoldMessenger.of(context).showSnackBar(
+    //   const SnackBar(
+    //     content: Text("تم إتمام عملية البيع بنجاح! ✅"),
+    //     backgroundColor: Colors.green,
+    //   ),
+    // );
+
     if (cart.isEmpty) return;
 
-    setState(() {
-      salesHistory.add(
-        SaleRecord(
-          id: DateTime.now().millisecondsSinceEpoch.toString(),
-          dateTime: DateTime.now(),
-          items: List.from(cart),
-          // : _calculateTotal(),
-        ),
-      );
-      cart.clear();
-    });
+    final sale = POSSaleModel(items: List.from(cart));
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text("تم إتمام عملية البيع بنجاح! ✅"),
-        backgroundColor: Colors.green,
-      ),
-    );
+    await context.read<POSSaleCubit>().createSale(sale);
   }
 
   // 🧱 إضافة المنتج للسلة
@@ -476,8 +517,9 @@ class _QuickSaleScreenState extends State<QuickSaleScreen> {
       );
       return;
     }
+    final productCubit = context.read<ProductCubit>();
 
-    final product = allProducts.firstWhere(
+    final product = productCubit.products.firstWhere(
       (p) => p.barcode == barcode,
       orElse: () => ProductModel(
         id: '0',
@@ -493,6 +535,17 @@ class _QuickSaleScreenState extends State<QuickSaleScreen> {
     );
 
     if (product.id != '0') {
+      // تحقق من الكمية المتاحة
+      if (product.quantity <= 0) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("❌ المنتج غير متوفر في المخزون"),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+
       setState(() {
         final existingIndex = cart.indexWhere(
           (item) => item.product.id == product.id,
@@ -501,305 +554,367 @@ class _QuickSaleScreenState extends State<QuickSaleScreen> {
         if (existingIndex == -1) {
           cart.add(POSCartItem(product: product));
         } else {
+          // تحقق من الكمية المطلوبة
+          final totalRequested = cart[existingIndex].quantity + 1;
+          if (totalRequested > product.quantity) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text("❌ الكمية المتاحة فقط: ${product.quantity}"),
+                backgroundColor: Colors.orange,
+              ),
+            );
+            return;
+          }
           cart[existingIndex].quantity += 1;
         }
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("تم إضافة ${product.name} للسلة ✅"),
-          backgroundColor: Colors.green,
-          duration: const Duration(seconds: 1),
-        ),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("تم إضافة ${product.name} ✅")));
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("المنتج غير موجود ❌"),
-          backgroundColor: Colors.red,
-        ),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("المنتج غير موجود ❌")));
     }
   }
 
   // 🧱 تاب المخزون
   Widget _buildInventoryTab({bool isDesktop = false}) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: ConstrainedBox(
-        constraints: BoxConstraints(minWidth: isDesktop ? 800 : 400),
-        child: Table(
-          border: TableBorder.all(color: Colors.white24),
-          columnWidths: const {
-            0: FlexColumnWidth(3),
-            1: FlexColumnWidth(2),
-            2: FlexColumnWidth(1.5),
-            3: FlexColumnWidth(2),
-          },
-          children: [
-            const TableRow(
-              decoration: BoxDecoration(color: Color(0xFF353855)),
-              children: [
-                Padding(
-                  padding: EdgeInsets.all(12.0),
-                  child: Text(
-                    "المنتج",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    textAlign: TextAlign.right,
-                  ),
-                ),
-                Padding(
-                  padding: EdgeInsets.all(12.0),
-                  child: Text(
-                    "الباركود",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-                Padding(
-                  padding: EdgeInsets.all(12.0),
-                  child: Text(
-                    "الكمية",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-                Padding(
-                  padding: EdgeInsets.all(12.0),
-                  child: Text(
-                    "سعر البيع",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ],
-            ),
-            ...allProducts.map((product) {
-              return TableRow(
+    return BlocBuilder<ProductCubit, ProductState>(
+      builder: (context, state) {
+        if (state is ProductLoading) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (state is ProductLoaded) {
+          allProducts = state.products;
+
+          return SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minWidth: isDesktop ? 800 : 400),
+              child: Table(
+                border: TableBorder.all(color: Colors.white24),
+                columnWidths: const {
+                  0: FlexColumnWidth(3),
+                  1: FlexColumnWidth(2),
+                  2: FlexColumnWidth(1.5),
+                  3: FlexColumnWidth(2),
+                },
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.all(12.0),
-                    child: Text(
-                      product.name,
-                      style: const TextStyle(color: Colors.white),
-                      textAlign: TextAlign.right,
-                    ),
+                  const TableRow(
+                    decoration: BoxDecoration(color: Color(0xFF353855)),
+                    children: [
+                      Padding(
+                        padding: EdgeInsets.all(12.0),
+                        child: Text(
+                          "المنتج",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.right,
+                        ),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.all(12.0),
+                        child: Text(
+                          "الباركود",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.all(12.0),
+                        child: Text(
+                          "الكمية",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.all(12.0),
+                        child: Text(
+                          "سعر البيع",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ],
                   ),
-                  Padding(
-                    padding: const EdgeInsets.all(12.0),
-                    child: Text(
-                      product.barcode,
-                      style: const TextStyle(color: Colors.white70),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(12.0),
-                    child: Text(
-                      "${product.quantity}",
-                      style: const TextStyle(color: Colors.white70),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(12.0),
-                    child: Text(
-                      "${product.sellPrice.toStringAsFixed(2)} ج.م",
-                      style: const TextStyle(color: Colors.white70),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
+                  ...allProducts.map((product) {
+                    return TableRow(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(12.0),
+                          child: Text(
+                            product.name,
+                            style: const TextStyle(color: Colors.white),
+                            textAlign: TextAlign.right,
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(12.0),
+                          child: Text(
+                            product.barcode,
+                            style: const TextStyle(color: Colors.white70),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(12.0),
+                          child: Text(
+                            "${product.quantity}",
+                            style: const TextStyle(color: Colors.white70),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(12.0),
+                          child: Text(
+                            "${product.sellPrice.toStringAsFixed(2)} ج.م",
+                            style: const TextStyle(color: Colors.white70),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ],
+                    );
+                  }).toList(),
                 ],
-              );
-            }).toList(),
-          ],
-        ),
-      ),
+              ),
+            ),
+          );
+        }
+        return const Center(child: Text("لا توجد منتجات"));
+      },
     );
   }
 
   // 🧱 تاب سجل المبيعات
   Widget _buildSalesHistoryTab({bool isDesktop = false}) {
-    if (salesHistory.isEmpty) {
-      return Center(
-        child: Container(
-          padding: const EdgeInsets.all(40),
-          decoration: BoxDecoration(
-            color: const Color(0xFF353855),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: const Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.receipt_long, color: Colors.white38, size: 64),
-              SizedBox(height: 16),
-              Text(
-                "لم يتم تسجيل أي مبيعات بعد.",
-                style: TextStyle(color: Colors.white70, fontSize: 16),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
+    // if (salesHistory.isEmpty) {
+    //   return Center(
+    //     child: Container(
+    //       padding: const EdgeInsets.all(40),
+    //       decoration: BoxDecoration(
+    //         color: const Color(0xFF353855),
+    //         borderRadius: BorderRadius.circular(12),
+    //       ),
+    //       child: const Column(
+    //         mainAxisSize: MainAxisSize.min,
+    //         children: [
+    //           Icon(Icons.receipt_long, color: Colors.white38, size: 64),
+    //           SizedBox(height: 16),
+    //           Text(
+    //             "لم يتم تسجيل أي مبيعات بعد.",
+    //             style: TextStyle(color: Colors.white70, fontSize: 16),
+    //           ),
+    //         ],
+    //       ),
+    //     ),
+    //   );
+    // }
 
-    return Column(
-      children: salesHistory.map((sale) {
-        return Container(
-          margin: const EdgeInsets.only(bottom: 20),
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.blueAccent.withOpacity(0.3)),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: const BoxDecoration(
-                  color: Color(0xFF353855),
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(12),
-                    topRight: Radius.circular(12),
-                  ),
+    return BlocBuilder<POSSaleCubit, POSSaleState>(
+      builder: (context, state) {
+        if (state is POSSaleLoading) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (state is POSSaleLoaded) {
+          final sales = state.sales;
+          if (sales.isEmpty) {
+            return Center(
+              child: Container(
+                padding: const EdgeInsets.all(40),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF353855),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                child: const Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
+                    Icon(Icons.receipt_long, color: Colors.white38, size: 64),
+                    SizedBox(height: 16),
                     Text(
-                      "الإجمالي: ${sale.total.toStringAsFixed(2)} ج.م",
-                      style: const TextStyle(
-                        color: Colors.blueAccent,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      "${sale.dateTime.day}/${sale.dateTime.month}/${sale.dateTime.year} - ${sale.dateTime.hour}:${sale.dateTime.minute}",
-                      style: const TextStyle(color: Colors.white70),
+                      "لم يتم تسجيل أي مبيعات بعد.",
+                      style: TextStyle(color: Colors.white70, fontSize: 16),
                     ),
                   ],
                 ),
               ),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(minWidth: isDesktop ? 800 : 400),
-                  child: Table(
-                    border: TableBorder.all(color: Colors.white24),
-                    columnWidths: const {
-                      0: FlexColumnWidth(3),
-                      1: FlexColumnWidth(1.5),
-                      2: FlexColumnWidth(2),
-                      3: FlexColumnWidth(2),
-                    },
-                    children: [
-                      const TableRow(
-                        decoration: BoxDecoration(color: Color(0xFF42455E)),
+            );
+          }
+
+          return Column(
+            children: sales.map((sale) {
+              return Container(
+                margin: const EdgeInsets.only(bottom: 20),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.blueAccent.withOpacity(0.3)),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: const BoxDecoration(
+                        color: Color(0xFF353855),
+                        borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(12),
+                          topRight: Radius.circular(12),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Padding(
-                            padding: EdgeInsets.all(8.0),
-                            child: Text(
-                              "المنتج",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              textAlign: TextAlign.right,
+                          Text(
+                            "الإجمالي: ${sale.total.toStringAsFixed(2)} ج.م",
+                            style: const TextStyle(
+                              color: Colors.blueAccent,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
-                          Padding(
-                            padding: EdgeInsets.all(8.0),
-                            child: Text(
-                              "الكمية",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                          Padding(
-                            padding: EdgeInsets.all(8.0),
-                            child: Text(
-                              "سعر الوحدة",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                          Padding(
-                            padding: EdgeInsets.all(8.0),
-                            child: Text(
-                              "الإجمالي",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
+                          Text(
+                            "${sale.saleDate.day}/${sale.saleDate.month}/${sale.saleDate.year} - ${sale.saleDate.hour}:${sale.saleDate.minute}",
+                            style: const TextStyle(color: Colors.white70),
                           ),
                         ],
                       ),
-                      ...sale.items.map<TableRow>((item) {
-                        return TableRow(
+                    ),
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minWidth: isDesktop ? 800 : 400,
+                        ),
+                        child: Table(
+                          border: TableBorder.all(color: Colors.white24),
+                          columnWidths: const {
+                            0: FlexColumnWidth(3),
+                            1: FlexColumnWidth(1.5),
+                            2: FlexColumnWidth(2),
+                            3: FlexColumnWidth(2),
+                          },
                           children: [
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text(
-                                item.product.name,
-                                style: const TextStyle(color: Colors.white),
-                                textAlign: TextAlign.right,
+                            const TableRow(
+                              decoration: BoxDecoration(
+                                color: Color(0xFF42455E),
                               ),
+                              children: [
+                                Padding(
+                                  padding: EdgeInsets.all(8.0),
+                                  child: Text(
+                                    "المنتج",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    textAlign: TextAlign.right,
+                                  ),
+                                ),
+                                Padding(
+                                  padding: EdgeInsets.all(8.0),
+                                  child: Text(
+                                    "الكمية",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                                Padding(
+                                  padding: EdgeInsets.all(8.0),
+                                  child: Text(
+                                    "سعر الوحدة",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                                Padding(
+                                  padding: EdgeInsets.all(8.0),
+                                  child: Text(
+                                    "الإجمالي",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              ],
                             ),
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text(
-                                "${item.quantity}",
-                                style: const TextStyle(color: Colors.white70),
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text(
-                                "${item.price.toStringAsFixed(2)}",
-                                style: const TextStyle(color: Colors.white70),
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.all(8.0),
-                              child: Text(
-                                item.total.toStringAsFixed(2),
-                                style: const TextStyle(color: Colors.white70),
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
+                            ...sale.items.map<TableRow>((item) {
+                              return TableRow(
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Text(
+                                      item.product.name,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                      ),
+                                      textAlign: TextAlign.right,
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Text(
+                                      "${item.quantity}",
+                                      style: const TextStyle(
+                                        color: Colors.white70,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Text(
+                                      "${item.price.toStringAsFixed(2)}",
+                                      style: const TextStyle(
+                                        color: Colors.white70,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Text(
+                                      item.total.toStringAsFixed(2),
+                                      style: const TextStyle(
+                                        color: Colors.white70,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                ],
+                              );
+                            }).toList(),
                           ],
-                        );
-                      }).toList(),
-                    ],
-                  ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-            ],
-          ),
-        );
-      }).toList(),
+              );
+            }).toList(),
+          );
+        }
+        return const Center(child: Text("لا توجد مبيعات"));
+      },
     );
   }
 }

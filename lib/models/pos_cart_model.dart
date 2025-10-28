@@ -1,9 +1,9 @@
 import 'package:management_stock/models/product.dart';
 
 class POSCartItem {
-  ProductModel product;
+  final ProductModel product;
   int quantity;
-  double price; // سعر البيع الحالي
+  final double price;
 
   POSCartItem({
     required this.product,

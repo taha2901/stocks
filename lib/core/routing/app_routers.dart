@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:management_stock/core/routing/routers.dart';
+import 'package:management_stock/models/customer.dart';
 import 'package:management_stock/screens/customers/add_new_customer.dart';
 import 'package:management_stock/screens/customers/customers_screen.dart';
+import 'package:management_stock/screens/customers/edit_customer_screen.dart';
 import 'package:management_stock/screens/deffered/deffered_payments.dart';
 import 'package:management_stock/screens/home/dashboard_screen.dart';
 import 'package:management_stock/screens/login/login_screen.dart';
@@ -10,6 +12,7 @@ import 'package:management_stock/screens/products/add_product_page.dart';
 import 'package:management_stock/screens/products/products_screen.dart';
 import 'package:management_stock/screens/purchase/purchase_invoice_screen.dart';
 import 'package:management_stock/screens/quick_sale/quick_sales_screen.dart';
+import 'package:management_stock/screens/report/report_screen.dart';
 import 'package:management_stock/screens/sales/sales_invoice_screen.dart';
 import 'package:management_stock/screens/suppliers/suppliers_screen.dart';
 
@@ -33,6 +36,11 @@ class AppRouter {
         return MaterialPageRoute(
           builder: (_) => const AddCustomerScreen(),
           settings: settings,
+        );
+      case Routers.editCustomerRoute:
+        final customer = settings.arguments as Customer;
+        return MaterialPageRoute(
+          builder: (_) => EditCustomerScreen(customer: customer),
         );
 
       case Routers.productRoute:
@@ -73,6 +81,11 @@ class AppRouter {
       case Routers.deferredAccountsRoute:
         return MaterialPageRoute(
           builder: (_) => const DeferredAccountsScreen(),
+          settings: settings,
+        );
+      case Routers.reportRoute:
+        return MaterialPageRoute(
+          builder: (_) => const ReportsScreen(),
           settings: settings,
         );
       default:

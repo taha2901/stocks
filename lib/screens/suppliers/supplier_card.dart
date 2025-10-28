@@ -1,21 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:management_stock/core/constants/app_constants.dart';
 import 'package:management_stock/models/suppliers.dart';
-import 'package:management_stock/screens/suppliers/add_edit_suppliers_page.dart';
 
-class SupplierCard extends StatefulWidget {
+class SupplierCard extends StatelessWidget {
   final Supplier supplier;
-  const SupplierCard({super.key, required this.supplier});
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
 
-  @override
-  State<SupplierCard> createState() => _SupplierCardState();
-}
+  const SupplierCard({
+    super.key,
+    required this.supplier,
+    required this.onEdit,
+    required this.onDelete,
+  });
 
-class _SupplierCardState extends State<SupplierCard> {
-  List<Supplier> suppliers = List.from(dummySuppliers);
-  List<Supplier> filteredSuppliers = List.from(dummySuppliers);
-  String searchQuery = '';
-  String? cityFilter;
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -38,12 +36,15 @@ class _SupplierCardState extends State<SupplierCard> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  widget.supplier.name,
-                  style: TextStyle(
-                    fontSize: Responsive.fontSize(context, 22),
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blue,
+                Expanded(
+                  child: Text(
+                    supplier.name,
+                    style: TextStyle(
+                      fontSize: Responsive.fontSize(context, 22),
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blue,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 PopupMenuButton(
@@ -72,19 +73,21 @@ class _SupplierCardState extends State<SupplierCard> {
                   ],
                   onSelected: (value) {
                     if (value == 'edit') {
-                      _navigateToEditSupplier(context, widget.supplier);
-                    } else if (value == 'delete') {}
+                      onEdit();
+                    } else if (value == 'delete') {
+                      onDelete();
+                    }
                   },
                 ),
               ],
             ),
             const SizedBox(height: 8),
-            _buildInfoRow(Icons.phone, widget.supplier.phone),
+            _buildInfoRow(Icons.phone, supplier.phone),
             const SizedBox(height: 4),
-            _buildInfoRow(Icons.location_on, widget.supplier.address),
-            if (widget.supplier.notes.isNotEmpty) ...[
+            _buildInfoRow(Icons.location_on, supplier.address),
+            if (supplier.notes.isNotEmpty) ...[
               const SizedBox(height: 4),
-              _buildInfoRow(Icons.note, widget.supplier.notes),
+              _buildInfoRow(Icons.note, supplier.notes),
             ],
           ],
         ),
@@ -95,49 +98,16 @@ class _SupplierCardState extends State<SupplierCard> {
   Widget _buildInfoRow(IconData icon, String text) {
     return Row(
       children: [
-        Icon(icon, size: 18, color: Colors.white),
+        Icon(icon, size: 18, color: Colors.white70),
         const SizedBox(width: 8),
         Expanded(
           child: Text(
             text,
-            style: TextStyle(fontSize: 14, color: Colors.white),
+            style: const TextStyle(fontSize: 14, color: Colors.white),
             overflow: TextOverflow.ellipsis,
           ),
         ),
       ],
     );
-  }
-
-  void _navigateToEditSupplier(BuildContext context, Supplier supplier) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => AddEditSupplierPage(
-          supplier: supplier,
-          onSave: (updatedSupplier) {
-            setState(() {
-              final index = suppliers.indexWhere((s) => s.id == supplier.id);
-              if (index != -1) {
-                suppliers[index] = updatedSupplier;
-                _filterSuppliers();
-              }
-            });
-          },
-        ),
-      ),
-    );
-  }
-
-  void _filterSuppliers() {
-    setState(() {
-      filteredSuppliers = suppliers.where((supplier) {
-        final matchesSearch =
-            supplier.name.contains(searchQuery) ||
-            supplier.phone.contains(searchQuery);
-        final matchesCity =
-            cityFilter == null || supplier.address.contains(cityFilter!);
-        return matchesSearch && matchesCity;
-      }).toList();
-    });
   }
 }

@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:management_stock/core/constants/app_constants.dart';
 import 'package:management_stock/core/widgets/custom_text_field.dart';
-import 'package:management_stock/core/widgets/custom_button.dart'; // ✅ استدعاء الزر المخصص
+import 'package:management_stock/core/widgets/custom_button.dart';
+import 'package:management_stock/cubits/products/cubit.dart';
+import 'package:management_stock/models/product.dart'; // ✅ استدعاء الزر المخصص
 
 class AddProductScreen extends StatefulWidget {
   const AddProductScreen({super.key});
@@ -42,15 +45,29 @@ class _AddProductScreenState extends State<AddProductScreen> {
   }
 
   void saveProduct() {
-    FocusScope.of(context).unfocus();
     if (_formKey.currentState!.validate()) {
+      final product = ProductModel(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        name: nameController.text,
+        category: selectedCategory ?? '',
+        image: 'https://cdn-icons-png.flaticon.com/512/847/847969.png',
+        purchasePrice: double.parse(purchasePriceController.text),
+        sellPrice: double.parse(sellPriceController.text),
+        pointPrice: double.tryParse(pointPriceController.text) ?? 0,
+        quantity: int.parse(quantityController.text),
+        barcode: barcodeController.text,
+      );
+
+      context.read<ProductCubit>().addProduct(product);
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("✅ تم إضافة المنتج بنجاح"),
           backgroundColor: Colors.blueAccent,
         ),
       );
-      Navigator.pop(context);
+
+      Navigator.pop(context, true);
     }
   }
 

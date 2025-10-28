@@ -50,7 +50,7 @@ class DashboardScreen extends StatelessWidget {
       {
         "title": "تقارير المبيعات",
         "icon": Icons.show_chart_outlined,
-        "route": null, // لسه هيتعمل لاحقًا
+        "route": Routers.reportRoute, 
       },
     ];
 
