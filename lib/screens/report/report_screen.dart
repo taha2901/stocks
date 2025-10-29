@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:management_stock/core/constants/app_constants.dart';
 import 'package:management_stock/core/services/export_services.dart';
+import 'package:management_stock/core/widgets/custom_button.dart';
 import 'package:management_stock/cubits/report/cubit.dart';
 import 'package:management_stock/cubits/report/states.dart';
 import 'package:management_stock/screens/report/error_widget.dart';
@@ -122,6 +123,18 @@ class _ReportsScreenState extends State<ReportsScreen> {
       title: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
+          CustomButton(
+            text: "الرجوع ل الصفحة الرئيسية",
+            icon: Icons.home,
+            backgroundColor: Colors.white,
+            textColor: Colors.blue,
+            borderColor: Colors.blue,
+            fullWidth: false,
+            onPressed: () => Navigator.pop(context),
+            isOutlined: true,
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          ),
+          const Spacer(),
           Text(
             'التقارير والإحصائيات 📊',
             style: TextStyle(
@@ -138,6 +151,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
             ),
             child: const Icon(Icons.analytics, color: Colors.white, size: 20),
           ),
+          
         ],
       ),
       backgroundColor: const Color(0xFF2C2F48),

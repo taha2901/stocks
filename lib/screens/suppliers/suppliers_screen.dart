@@ -69,6 +69,17 @@ class _SuppliersPageState extends State<SuppliersPage> {
         ),
         const Spacer(),
         if (!Responsive.isMobile(context))
+        CustomButton(
+            text: "الرجوع ل الصفحة الرئيسية",
+            icon: Icons.home,
+            backgroundColor: Colors.white,
+            textColor: Colors.blue,
+            borderColor: Colors.blue,
+            fullWidth: false,
+            onPressed: () => Navigator.pop(context),
+            isOutlined: true,
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          ),
           CustomButton(
             text: "إحصائيات",
             icon: Icons.bar_chart,
