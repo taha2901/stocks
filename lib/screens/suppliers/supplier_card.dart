@@ -16,6 +16,9 @@ class SupplierCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final double horizontalPadding = Responsive.spacing(context, 20);
+    final double verticalPadding = Responsive.spacing(context, 16);
+
     return Container(
       decoration: BoxDecoration(
         color: const Color(0xFF2C2F48),
@@ -29,7 +32,10 @@ class SupplierCard extends StatelessWidget {
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: EdgeInsets.symmetric(
+          horizontal: horizontalPadding,
+          vertical: verticalPadding,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -48,25 +54,25 @@ class SupplierCard extends StatelessWidget {
                   ),
                 ),
                 PopupMenuButton(
-                  icon: const Icon(Icons.more_vert, color: Colors.white),
+                  icon: Icon(Icons.more_vert, color: Colors.white, size: Responsive.isMobile(context) ? 20 : 24),
                   itemBuilder: (context) => [
-                    const PopupMenuItem(
+                    PopupMenuItem(
                       value: 'edit',
                       child: Row(
                         children: [
                           Icon(Icons.edit, color: Colors.blue, size: 20),
-                          SizedBox(width: 8),
-                          Text('تعديل'),
+                          const SizedBox(width: 8),
+                          const Text('تعديل'),
                         ],
                       ),
                     ),
-                    const PopupMenuItem(
+                    PopupMenuItem(
                       value: 'delete',
                       child: Row(
                         children: [
                           Icon(Icons.delete, color: Colors.red, size: 20),
-                          SizedBox(width: 8),
-                          Text('حذف'),
+                          const SizedBox(width: 8),
+                          const Text('حذف'),
                         ],
                       ),
                     ),
@@ -81,13 +87,13 @@ class SupplierCard extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 8),
-            _buildInfoRow(Icons.phone, supplier.phone),
-            const SizedBox(height: 4),
-            _buildInfoRow(Icons.location_on, supplier.address),
+            SizedBox(height: Responsive.spacing(context, 8)),
+            _buildInfoRow(Icons.phone, supplier.phone, context),
+            SizedBox(height: Responsive.spacing(context, 4)),
+            _buildInfoRow(Icons.location_on, supplier.address, context),
             if (supplier.notes.isNotEmpty) ...[
-              const SizedBox(height: 4),
-              _buildInfoRow(Icons.note, supplier.notes),
+              SizedBox(height: Responsive.spacing(context, 4)),
+              _buildInfoRow(Icons.note, supplier.notes, context),
             ],
           ],
         ),
@@ -95,7 +101,7 @@ class SupplierCard extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoRow(IconData icon, String text) {
+  Widget _buildInfoRow(IconData icon, String text, BuildContext context) {
     return Row(
       children: [
         Icon(icon, size: 18, color: Colors.white70),
@@ -103,7 +109,7 @@ class SupplierCard extends StatelessWidget {
         Expanded(
           child: Text(
             text,
-            style: const TextStyle(fontSize: 14, color: Colors.white),
+            style: TextStyle(fontSize: Responsive.fontSize(context, 14), color: Colors.white),
             overflow: TextOverflow.ellipsis,
           ),
         ),

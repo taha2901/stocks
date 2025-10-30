@@ -40,6 +40,11 @@ class _ProductsScreenState extends State<ProductsScreen> {
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
+        automaticallyImplyLeading: false,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       body: BlocConsumer<ProductCubit, ProductState>(
         listener: (context, state) {
@@ -78,7 +83,10 @@ class _ProductsScreenState extends State<ProductsScreen> {
             );
           }
 
-          final categories = ['الكل', ...allProducts.map((e) => e.category).toSet()];
+          final categories = [
+            'الكل',
+            ...allProducts.map((e) => e.category).toSet(),
+          ];
 
           final filteredProducts = allProducts.where((product) {
             final matchesCategory =
@@ -87,7 +95,9 @@ class _ProductsScreenState extends State<ProductsScreen> {
                 product.category == selectedCategory;
             final matchesBarcode =
                 barcodeSearch.isEmpty ||
-                product.barcode.toLowerCase().contains(barcodeSearch.toLowerCase());
+                product.barcode.toLowerCase().contains(
+                  barcodeSearch.toLowerCase(),
+                );
             return matchesCategory && matchesBarcode;
           }).toList();
 
@@ -102,7 +112,6 @@ class _ProductsScreenState extends State<ProductsScreen> {
                 Row(
                   children: [
                     Expanded(
-                      flex: 2,
                       child: CustomInputField(
                         label: "الفئة",
                         items: categories,
@@ -113,7 +122,6 @@ class _ProductsScreenState extends State<ProductsScreen> {
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      flex: 3,
                       child: CustomInputField(
                         label: "بحث بالباركود",
                         hint: "أدخل الباركود أو جزء منه",
@@ -249,7 +257,10 @@ class _ProductCard extends StatelessWidget {
                   width: 80,
                   height: 80,
                   color: Colors.grey[700],
-                  child: const Icon(Icons.image_not_supported, color: Colors.white54),
+                  child: const Icon(
+                    Icons.image_not_supported,
+                    color: Colors.white54,
+                  ),
                 );
               },
             ),

@@ -7,7 +7,7 @@ import 'package:management_stock/cubits/suppliers/cubit.dart';
 import 'package:management_stock/cubits/suppliers/states.dart';
 import 'package:management_stock/models/suppliers.dart';
 import 'package:management_stock/screens/suppliers/add_edit_suppliers_page.dart';
-import 'package:management_stock/screens/suppliers/statistics_page.dart';
+import 'package:management_stock/screens/suppliers/header_of_suppliers.dart';
 import 'package:management_stock/screens/suppliers/supplier_card.dart';
 
 class SuppliersPage extends StatefulWidget {
@@ -28,79 +28,30 @@ class _SuppliersPageState extends State<SuppliersPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Scaffold(
-        body: Padding(
-          padding: Responsive.pagePadding(context),
-          child: Column(
-            children: [
-              _buildHeader(context),
-              SizedBox(height: Responsive.spacing(context, 24)),
-              _buildFilterBar(context),
-              SizedBox(height: Responsive.spacing(context, 24)),
-              Expanded(child: _buildSuppliersList(context)),
-            ],
-          ),
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text(
+          'قائمة الموردين',
+          style: TextStyle(color: Colors.white),
+        ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
+        centerTitle: true,
+      ),
+      body: Padding(
+        padding: Responsive.pagePadding(context),
+        child: Column(
+          children: [
+            const ResponsiveHeader(),
+            SizedBox(height: Responsive.spacing(context, 24)),
+            _buildFilterBar(context),
+            SizedBox(height: Responsive.spacing(context, 24)),
+            Expanded(child: _buildSuppliersList(context)),
+          ],
         ),
       ),
-    );
-  }
-
-  Widget _buildHeader(BuildContext context) {
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: Colors.orange.shade100,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: const Icon(Icons.inventory_2, color: Colors.orange, size: 28),
-        ),
-        const SizedBox(width: 12),
-        Text(
-          'قائمة الموردين',
-          style: TextStyle(
-            fontSize: Responsive.fontSize(context, 28),
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
-        const Spacer(),
-        if (!Responsive.isMobile(context))
-        CustomButton(
-            text: "الرجوع ل الصفحة الرئيسية",
-            icon: Icons.home,
-            backgroundColor: Colors.white,
-            textColor: Colors.blue,
-            borderColor: Colors.blue,
-            fullWidth: false,
-            onPressed: () => Navigator.pop(context),
-            isOutlined: true,
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-          ),
-          CustomButton(
-            text: "إحصائيات",
-            icon: Icons.bar_chart,
-            backgroundColor: Colors.white,
-            textColor: Colors.blue,
-            borderColor: Colors.blue,
-            fullWidth: false,
-            onPressed: () => _navigateToStatistics(context),
-            isOutlined: true,
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-          ),
-        const SizedBox(width: 12),
-        CustomButton(
-          text: Responsive.isMobile(context) ? "" : "مورد جديد",
-          icon: Icons.add,
-          backgroundColor: Colors.green,
-          fullWidth: false,
-          onPressed: () => _navigateToAddSupplier(context),
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-        ),
-      ],
     );
   }
 
@@ -171,10 +122,7 @@ class _SuppliersPageState extends State<SuppliersPage> {
       listener: (context, state) {
         if (state is SupplierOperationError) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.message),
-              backgroundColor: Colors.red,
-            ),
+            SnackBar(content: Text(state.message), backgroundColor: Colors.red),
           );
         } else if (state is SupplierAdded) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -280,19 +228,6 @@ class _SuppliersPageState extends State<SuppliersPage> {
     );
   }
 
-  void _navigateToAddSupplier(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => AddEditSupplierPage(
-          onSave: (supplier) {
-            context.read<SupplierCubit>().addSupplier(supplier);
-          },
-        ),
-      ),
-    );
-  }
-
   void _navigateToEditSupplier(BuildContext context, Supplier supplier) {
     Navigator.push(
       context,
@@ -325,21 +260,11 @@ class _SuppliersPageState extends State<SuppliersPage> {
                 context.read<SupplierCubit>().deleteSupplier(supplier.id);
                 Navigator.pop(dialogContext);
               },
-              child: const Text(
-                'حذف',
-                style: TextStyle(color: Colors.red),
-              ),
+              child: const Text('حذف', style: TextStyle(color: Colors.red)),
             ),
           ],
         ),
       ),
-    );
-  }
-
-  void _navigateToStatistics(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const StatisticsPage()),
     );
   }
 }

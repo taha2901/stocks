@@ -118,9 +118,43 @@ class _ReportsScreenState extends State<ReportsScreen> {
   }
 
   // ==================== AppBar ====================
-  PreferredSizeWidget _buildAppBar() {
-    return AppBar(
-      title: Row(
+PreferredSizeWidget _buildAppBar() {
+  return AppBar(
+    backgroundColor: const Color(0xFF2C2F48),
+    automaticallyImplyLeading: false,
+    title: ResponsiveLayout(
+      mobile: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          // زر العودة مع أيقونة فقط لأنه عرض الهاتف ضيق
+          IconButton(
+            icon: const Icon(Icons.home, color: Colors.blue),
+            onPressed: () => Navigator.pop(context),
+            tooltip: 'الرجوع ل الصفحة الرئيسية',
+          ),
+          Expanded(
+            child: Text(
+              'التقارير 📊',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: Responsive.fontSize(context, 18),
+                fontWeight: FontWeight.bold,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              color: Colors.blueAccent,
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: const Icon(Icons.analytics, color: Colors.white, size: 20),
+          ),
+        ],
+      ),
+      tablet: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
           CustomButton(
@@ -132,7 +166,12 @@ class _ReportsScreenState extends State<ReportsScreen> {
             fullWidth: false,
             onPressed: () => Navigator.pop(context),
             isOutlined: true,
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+            padding: Responsive.value(
+              context: context,
+              mobile: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              tablet: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              desktop: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+            ),
           ),
           const Spacer(),
           Text(
@@ -140,6 +179,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
             style: TextStyle(
               color: Colors.white,
               fontSize: Responsive.fontSize(context, 20),
+              fontWeight: FontWeight.bold,
             ),
           ),
           const SizedBox(width: 8),
@@ -151,133 +191,191 @@ class _ReportsScreenState extends State<ReportsScreen> {
             ),
             child: const Icon(Icons.analytics, color: Colors.white, size: 20),
           ),
-          
         ],
       ),
-      backgroundColor: const Color(0xFF2C2F48),
-      automaticallyImplyLeading: false,
-      actions: [
-        IconButton(
-          icon: const Icon(Icons.refresh, color: Colors.white),
-          onPressed: _loadReports,
+      desktop: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          CustomButton(
+            text: "الرجوع ل الصفحة الرئيسية",
+            icon: Icons.home,
+            backgroundColor: Colors.white,
+            textColor: Colors.blue,
+            borderColor: Colors.blue,
+            fullWidth: false,
+            onPressed: () => Navigator.pop(context),
+            isOutlined: true,
+            padding: Responsive.value(
+              context: context,
+              mobile: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              tablet: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              desktop: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+            ),
+          ),
+          const Spacer(),
+          Text(
+            'التقارير والإحصائيات 📊',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: Responsive.fontSize(context, 22),
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: Colors.blueAccent,
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: const Icon(Icons.analytics, color: Colors.white, size: 24),
+          ),
+        ],
+      ),
+    ),
+    actions: [
+      IconButton(
+        icon: const Icon(Icons.refresh, color: Colors.white),
+        onPressed: _loadReports,
+        tooltip: 'تحديث التقارير',
+        iconSize: Responsive.value(
+          context: context,
+          mobile: 20,
+          tablet: 24,
+          desktop: 28,
+        ),
+      ),
+    ],
+  );
+}
+
+
+// ==================== Export Buttons ====================
+Widget _buildExportButtons() {
+  return Container(
+    color: const Color(0xFF2C2F48),
+    padding: Responsive.value(
+      context: context,
+      mobile: const EdgeInsets.all(12),
+      tablet: const EdgeInsets.all(16),
+      desktop: const EdgeInsets.all(20),
+    ),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        Expanded(
+          child: ExportButton(
+            label: 'تصدير CSV',
+            icon: Icons.table_chart,
+            color: Colors.green,
+            onPressed: _exportToCSV,
+            // fontSize: Responsive.fontSize(context, 14),
+            // padding: Responsive.value(
+            //   context: context,
+            //   mobile: const EdgeInsets.symmetric(vertical: 12),
+            //   tablet: const EdgeInsets.symmetric(vertical: 14),
+            //   desktop: const EdgeInsets.symmetric(vertical: 16),
+            // ),
+          ),
+        ),
+        SizedBox(width: Responsive.spacing(context, 12)),
+        Expanded(
+          child: ExportButton(
+            label: 'تصدير PDF',
+            icon: Icons.picture_as_pdf,
+            color: Colors.redAccent,
+            onPressed: _exportToPDF,
+            // ق
+          ),
         ),
       ],
-    );
-  }
+    ),
+  );
+}
 
-  // ==================== Export Buttons ====================
-  Widget _buildExportButtons() {
-    final isDesktop = Responsive.isDesktop(context);
-    
-    return Container(
-      color: const Color(0xFF2C2F48),
-      padding: Responsive.value(
-        context: context,
-        mobile: const EdgeInsets.all(12),
-        tablet: const EdgeInsets.all(16),
-        desktop: const EdgeInsets.all(20),
-      ),
+// ==================== Period Filter ====================
+Widget _buildPeriodFilter() {
+  return Container(
+    color: const Color(0xFF2C2F48),
+    padding: Responsive.value(
+      context: context,
+      mobile: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      tablet: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      desktop: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+    ),
+    child: SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          Expanded(
-            child: ExportButton(
-              label: 'تصدير CSV',
-              icon: Icons.table_chart,
-              color: Colors.green,
-              onPressed: _exportToCSV,
-            ),
+          PeriodButton(
+            label: 'مخصص',
+            icon: Icons.date_range,
+            isSelected: selectedPeriod == 'مخصص',
+            onPressed: _selectCustomDateRange,
+            // fontSize: Responsive.fontSize(context, 14),
           ),
-          SizedBox(width: Responsive.spacing(context, 12)),
-          Expanded(
-            child: ExportButton(
-              label: 'تصدير PDF',
-              icon: Icons.picture_as_pdf,
-              color: Colors.redAccent,
-              onPressed: _exportToPDF,
-            ),
+          SizedBox(width: Responsive.spacing(context, 8)),
+          PeriodButton(
+            label: 'الكل',
+            icon: Icons.all_inclusive,
+            isSelected: selectedPeriod == 'الكل',
+            onPressed: () {
+              _setDateRange('الكل');
+              _loadReports();
+            },
+            // // fontSize: Responsive.fontSize(context, 14),
+          ),
+          SizedBox(width: Responsive.spacing(context, 8)),
+          PeriodButton(
+            label: 'السنة',
+            icon: Icons.calendar_today,
+            isSelected: selectedPeriod == 'السنة',
+            onPressed: () {
+              _setDateRange('السنة');
+              _loadReports();
+            },
+            // // fontSize: Responsive.fontSize(context, 14),
+          ),
+          SizedBox(width: Responsive.spacing(context, 8)),
+          PeriodButton(
+            label: 'الشهر',
+            icon: Icons.calendar_month,
+            isSelected: selectedPeriod == 'الشهر',
+            onPressed: () {
+              _setDateRange('الشهر');
+              _loadReports();
+            },
+            // // fontSize: Responsive.fontSize(context, 14),
+          ),
+          SizedBox(width: Responsive.spacing(context, 8)),
+          PeriodButton(
+            label: 'الأسبوع',
+            icon: Icons.calendar_view_week,
+            isSelected: selectedPeriod == 'الأسبوع',
+            onPressed: () {
+              _setDateRange('الأسبوع');
+              _loadReports();
+            },
+            // // fontSize: Responsive.fontSize(context, 14),
+
+          ),
+          SizedBox(width: Responsive.spacing(context, 8)),
+          PeriodButton(
+            label: 'اليوم',
+            icon: Icons.today,
+            isSelected: selectedPeriod == 'اليوم',
+            onPressed: () {
+              _setDateRange('اليوم');
+              _loadReports();
+            },
+            // // fontSize: Responsive.fontSize(context, 14),
           ),
         ],
       ),
-    );
-  }
-
-  // ==================== Period Filter ====================
-  Widget _buildPeriodFilter() {
-    return Container(
-      color: const Color(0xFF2C2F48),
-      padding: Responsive.value(
-        context: context,
-        mobile: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        tablet: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        desktop: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-      ),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            PeriodButton(
-              label: 'مخصص',
-              icon: Icons.date_range,
-              isSelected: selectedPeriod == 'مخصص',
-              onPressed: _selectCustomDateRange,
-            ),
-            const SizedBox(width: 8),
-            PeriodButton(
-              label: 'الكل',
-              icon: Icons.all_inclusive,
-              isSelected: selectedPeriod == 'الكل',
-              onPressed: () {
-                _setDateRange('الكل');
-                _loadReports();
-              },
-            ),
-            const SizedBox(width: 8),
-            PeriodButton(
-              label: 'السنة',
-              icon: Icons.calendar_today,
-              isSelected: selectedPeriod == 'السنة',
-              onPressed: () {
-                _setDateRange('السنة');
-                _loadReports();
-              },
-            ),
-            const SizedBox(width: 8),
-            PeriodButton(
-              label: 'الشهر',
-              icon: Icons.calendar_month,
-              isSelected: selectedPeriod == 'الشهر',
-              onPressed: () {
-                _setDateRange('الشهر');
-                _loadReports();
-              },
-            ),
-            const SizedBox(width: 8),
-            PeriodButton(
-              label: 'الأسبوع',
-              icon: Icons.calendar_view_week,
-              isSelected: selectedPeriod == 'الأسبوع',
-              onPressed: () {
-                _setDateRange('الأسبوع');
-                _loadReports();
-              },
-            ),
-            const SizedBox(width: 8),
-            PeriodButton(
-              label: 'اليوم',
-              icon: Icons.today,
-              isSelected: selectedPeriod == 'اليوم',
-              onPressed: () {
-                _setDateRange('اليوم');
-                _loadReports();
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+    ),
+  );
+}
 
   // ==================== Report Tabs ====================
   Widget _buildReportTabs() {

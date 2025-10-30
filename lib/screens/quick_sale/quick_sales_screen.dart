@@ -9,7 +9,6 @@ import 'package:management_stock/cubits/quick_sales/states.dart';
 import 'package:management_stock/models/pos_sales_model.dart';
 import 'package:management_stock/models/product.dart';
 import 'package:management_stock/models/pos_cart_model.dart';
-import 'package:management_stock/models/sales_record.dart';
 
 class QuickSaleScreen extends StatefulWidget {
   const QuickSaleScreen({super.key});
@@ -22,11 +21,9 @@ class _QuickSaleScreenState extends State<QuickSaleScreen> {
   final TextEditingController barcodeController = TextEditingController();
   int selectedTab = 0; // 0 = POS, 1 = Inventory, 2 = Sales History
 
-  // 🔹 بيانات المنتجات والسلة وسجل المبيعات
   late final ProductCubit productCubit;
   late List<ProductModel> allProducts;
   List<POSCartItem> cart = [];
-  // List<SaleRecord> salesHistory = [];
   late final POSSaleCubit posSaleCubit;
 
   @override
@@ -80,7 +77,10 @@ class _QuickSaleScreenState extends State<QuickSaleScreen> {
               ),
             ],
           ),
-          backgroundColor: const Color(0xFF2C2F48),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
+            onPressed: () => Navigator.pop(context),
+          ),
           automaticallyImplyLeading: false,
         ),
         body: Column(
@@ -248,26 +248,6 @@ class _QuickSaleScreenState extends State<QuickSaleScreen> {
           const SizedBox(height: 20),
         ],
 
-        // اختصارات لوحة المفاتيح
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: const Color(0xFF353855),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: const Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                "اختصارات: F1 = تركيز على الباركود | F2 = حفظ الفاتورة | Delete = حذف كل المنتجات",
-                style: TextStyle(color: Colors.white70, fontSize: 13),
-                textAlign: TextAlign.center,
-              ),
-              SizedBox(width: 8),
-              Icon(Icons.keyboard, color: Colors.white70, size: 18),
-            ],
-          ),
-        ),
         const SizedBox(height: 20),
         Row(
           children: [
@@ -478,27 +458,6 @@ class _QuickSaleScreenState extends State<QuickSaleScreen> {
 
   // 🧱 إتمام عملية البيع
   void _completeSale() async {
-    // if (cart.isEmpty) return;
-
-    // setState(() {
-    //   salesHistory.add(
-    //     SaleRecord(
-    //       id: saleDate.now().millisecondsSinceEpoch.toString(),
-    //       dateTime: DateTime.now(),
-    //       items: List.from(cart),
-    //       // : _calculateTotal(),
-    //     ),
-    //   );
-    //   cart.clear();
-    // });
-
-    // ScaffoldMessenger.of(context).showSnackBar(
-    //   const SnackBar(
-    //     content: Text("تم إتمام عملية البيع بنجاح! ✅"),
-    //     backgroundColor: Colors.green,
-    //   ),
-    // );
-
     if (cart.isEmpty) return;
 
     final sale = POSSaleModel(items: List.from(cart));

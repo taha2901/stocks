@@ -28,7 +28,7 @@ class PurchaseHeaderWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final paymentMethods = ['كاش', 'آجل'];
+    // final paymentMethods = ['كاش', 'آجل'];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -86,7 +86,7 @@ class PurchaseHeaderWidget extends StatelessWidget {
                     final supplier = suppliers.firstWhere(
                       (s) => s.name == supplierName,
                     );
-                    
+
                     // تحديث الاسم والـ ID
                     onSupplierChanged(supplier.name);
                     onSupplierIdChanged(supplier.id);
@@ -105,17 +105,7 @@ class PurchaseHeaderWidget extends StatelessWidget {
             );
           },
         ),
-        const SizedBox(height: 16),
 
-        // نوع الدفع
-        CustomInputField(
-          label: "نوع الدفع",
-          hint: "اختر نوع الدفع",
-          items: paymentMethods,
-          selectedValue: paymentType,
-          onItemSelected: onPaymentChanged,
-          prefixIcon: const Icon(Icons.payment, color: Colors.white70),
-        ),
         const SizedBox(height: 16),
 
         // تاريخ الفاتورة

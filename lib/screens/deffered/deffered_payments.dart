@@ -59,6 +59,14 @@ class _DeferredAccountsScreenState extends State<DeferredAccountsScreen> {
           ],
         ),
         elevation: 2,
+        automaticallyImplyLeading: false,
+        leading:  IconButton(
+          icon: const Icon(
+            Icons.arrow_back_ios_new,
+            color: Colors.white,
+          ),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       body: BlocListener<DeferredAccountCubit, DeferredAccountState>(
         listener: (context, state) {
