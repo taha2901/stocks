@@ -52,7 +52,7 @@ class InventoryReportWidget extends StatelessWidget {
           categoryValue: data['categoryValue'],
         ),
         SizedBox(height: Responsive.spacing(context, 20)),
-        InventoryTable(products: data['products']),
+        InventoryTable(products: data['products'],isDesktop:  true,),
       ],
     );
   }

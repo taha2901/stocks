@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:management_stock/core/constants/app_constants.dart';
-import 'package:management_stock/core/widgets/custom_text_field.dart';
-import 'package:management_stock/core/widgets/custom_button.dart';
 import 'package:management_stock/cubits/products/cubit.dart';
-import 'package:management_stock/models/product.dart'; // ✅ استدعاء الزر المخصص
+import 'package:management_stock/models/product.dart';
+import 'package:management_stock/screens/products/widgets/add_product/product_action_row.dart';
+import 'package:management_stock/screens/products/widgets/add_product/product_basics_field.dart';
+import 'package:management_stock/screens/products/widgets/add_product/product_prices_fields.dart';
+import 'package:management_stock/screens/products/widgets/add_product/product_stock_field.dart';
 
 class AddProductScreen extends StatefulWidget {
   const AddProductScreen({super.key});
@@ -74,7 +76,6 @@ class _AddProductScreenState extends State<AddProductScreen> {
   @override
   Widget build(BuildContext context) {
     final padding = Responsive.pagePadding(context);
-
     return Scaffold(
       backgroundColor: const Color(0xFF1E2030),
       appBar: AppBar(
@@ -97,17 +98,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  const SizedBox(height: 20),
-                  Text(
-                    "قم بإضافة منتج جديد إلى قاعدة البيانات",
-                    style: TextStyle(
-                      color: Colors.blueAccent.shade100,
-                      fontSize: Responsive.fontSize(context, 20),
-                      fontWeight: FontWeight.bold,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 30),
                   Container(
                     decoration: BoxDecoration(
                       color: const Color(0xFF2C2F48),
@@ -125,182 +116,36 @@ class _AddProductScreenState extends State<AddProductScreen> {
                       key: _formKey,
                       child: Column(
                         children: [
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: Text(
-                              "تفاصيل المنتج",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: Responsive.fontSize(context, 18),
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 25),
 
-                          // 🔹 اسم المنتج
-                          CustomInputField(
-                            label: "اسم المنتج",
-                            controller: nameController,
-                            prefixIcon: const Icon(
-                              Icons.note_alt_outlined,
-                              color: Colors.white,
-                            ),
-                            validator: (v) => v == null || v.isEmpty
-                                ? "يرجى إدخال الاسم"
-                                : null,
-                          ),
-                          const SizedBox(height: 15),
-
-                          // 🔹 الفئة
-                          CustomInputField(
-                            label: "الفئة",
-                            items: categories,
-                            selectedValue: selectedCategory,
-                            onItemSelected: (value) =>
+                          ProductBasicFields(
+                            nameController: nameController,
+                            categories: categories,
+                            selectedCategory: selectedCategory,
+                            onCategoryChanged: (value) =>
                                 setState(() => selectedCategory = value),
-                            prefixIcon: const Icon(
-                              Icons.category,
-                              color: Colors.white,
-                            ),
-                            validator: (v) =>
-                                selectedCategory == null ? "اختر فئة" : null,
                           ),
 
                           const SizedBox(height: 15),
 
-                          // 🔹 الأسعار
-                          ResponsiveLayout(
-                            mobile: Column(
-                              children: [
-                                CustomInputField(
-                                  label: "سعر الشراء",
-                                  controller: purchasePriceController,
-                                  keyboardType: TextInputType.number,
-                                  prefixIcon: const Icon(
-                                    Icons.price_check,
-                                    color: Colors.white,
-                                  ),
-                                  validator: (v) => v == null || v.isEmpty
-                                      ? "أدخل سعر الشراء"
-                                      : null,
-                                ),
-                                CustomInputField(
-                                  label: "سعر البيع",
-                                  controller: sellPriceController,
-                                  keyboardType: TextInputType.number,
-                                  prefixIcon: const Icon(
-                                    Icons.price_change,
-                                    color: Colors.white,
-                                  ),
-                                  validator: (v) => v == null || v.isEmpty
-                                      ? "أدخل سعر البيع"
-                                      : null,
-                                ),
-                                CustomInputField(
-                                  label: "سعر نقطة البيع",
-                                  controller: pointPriceController,
-                                  keyboardType: TextInputType.number,
-                                  prefixIcon: const Icon(
-                                    Icons.point_of_sale,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            tablet: Wrap(
-                              spacing: 10,
-                              runSpacing: 10,
-                              children: [
-                                SizedBox(
-                                  width: 200,
-                                  child: CustomInputField(
-                                    label: "سعر الشراء",
-                                    controller: purchasePriceController,
-                                    keyboardType: TextInputType.number,
-                                    prefixIcon: const Icon(
-                                      Icons.price_check,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ),
-                                SizedBox(
-                                  width: 200,
-                                  child: CustomInputField(
-                                    label: "سعر البيع",
-                                    controller: sellPriceController,
-                                    keyboardType: TextInputType.number,
-                                    prefixIcon: const Icon(
-                                      Icons.price_change,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ),
-                                SizedBox(
-                                  width: 200,
-                                  child: CustomInputField(
-                                    label: "سعر نقطة البيع",
-                                    controller: pointPriceController,
-                                    keyboardType: TextInputType.number,
-                                    prefixIcon: const Icon(
-                                      Icons.point_of_sale,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
+                          ProductPricesFields(
+                            purchasePriceController: purchasePriceController,
+                            sellPriceController: sellPriceController,
+                            pointPriceController: pointPriceController,
                           ),
 
                           const SizedBox(height: 20),
 
-                          // 🔹 الكمية
-                          CustomInputField(
-                            label: "الكمية",
-                            controller: quantityController,
-                            keyboardType: TextInputType.number,
-                            prefixIcon: const Icon(
-                              Icons.production_quantity_limits,
-                              color: Colors.white,
-                            ),
-                          ),
-                          const SizedBox(height: 15),
-
-                          // 🔹 الباركود
-                          CustomInputField(
-                            label: "الباركود",
-                            controller: barcodeController,
-                            prefixIcon: const Icon(
-                              Icons.qr_code,
-                              color: Colors.white,
-                            ),
+                          ProductStockFields(
+                            quantityController: quantityController,
+                            barcodeController: barcodeController,
                           ),
 
                           const SizedBox(height: 30),
 
-                          // ✅ الأزرار (باستخدام CustomButton)
-                          Row(
-                            children: [
-                              Expanded(
-                                child: CustomButton(
-                                  text: "حفظ المنتج",
-                                  icon: Icons.save,
-                                  backgroundColor: Colors.blueAccent,
-                                  onPressed: saveProduct,
-                                  height: 55,
-                                ),
-                              ),
-                              Spacer(),
-                              Expanded(
-                                child: CustomButton(
-                                  text: "رجوع",
-                                  icon: Icons.arrow_back,
-                                  backgroundColor: Colors.grey,
-                                  onPressed: () => Navigator.pop(context),
-                                  height: 55,
-                                ),
-                              ),
-                            ],
+                          ProductActionsRow(
+                            onSave: saveProduct,
+                            onBack: () => Navigator.pop(context),
                           ),
                         ],
                       ),

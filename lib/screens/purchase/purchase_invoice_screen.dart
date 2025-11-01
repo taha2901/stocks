@@ -123,6 +123,15 @@ class _PurchaseInvoiceScreenState extends State<PurchaseInvoiceScreen> {
           ),
         ),
         centerTitle: true,
+        leading:  IconButton(
+          icon: const Icon(
+            Icons.arrow_back,
+            color: Colors.white,
+          ),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
       ),
       body: BlocConsumer<PurchaseInvoiceCubit, PurchaseInvoiceState>(
         listener: (context, state) {

@@ -1,83 +1,90 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:management_stock/core/widgets/custom_button.dart';
-import 'package:management_stock/core/widgets/custom_text_field.dart';
 import 'package:management_stock/cubits/products/cubit.dart';
 import 'package:management_stock/cubits/sales/cubit.dart';
 import 'package:management_stock/cubits/sales/states.dart';
 import 'package:management_stock/models/sales_invoice_item.dart';
 import 'package:management_stock/models/sales_invoice_model.dart';
+import 'package:management_stock/screens/sales/widgets/customer_and_payment_section.dart';
 import 'package:management_stock/screens/sales/widgets/deffered_payment_widget.dart';
+import 'package:management_stock/screens/sales/widgets/invoice_date_field.dart';
 import 'package:management_stock/screens/sales/widgets/product_table_widget.dart';
 import 'package:management_stock/screens/sales/widgets/total_section_widget.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../cubits/Customers/cubit.dart';
-import '../../cubits/Customers/states.dart';
 
 class SalesInvoiceScreen extends StatefulWidget {
-  const SalesInvoiceScreen({super.key});
+  final SalesInvoiceModel invoice;
+
+  const SalesInvoiceScreen({super.key, required this.invoice});
 
   @override
   State<SalesInvoiceScreen> createState() => _SalesInvoiceScreenState();
 }
 
 class _SalesInvoiceScreenState extends State<SalesInvoiceScreen> {
-  SalesInvoiceModel invoice = SalesInvoiceModel();
-
+  // Controllers
   final TextEditingController paidNowController = TextEditingController();
   final TextEditingController interestRateController = TextEditingController();
   final TextEditingController discountController = TextEditingController();
 
-  final List<String> paymentMethods = ['كاش', 'آجل'];
+  final List<String> paymentMethods = const ['كاش', 'آجل'];
 
   @override
   void initState() {
     super.initState();
-    invoice.invoiceDate = DateTime.now();
+    widget.invoice.invoiceDate = DateTime.now();
+  }
+
+  @override
+  void dispose() {
+    paidNowController.dispose();
+    interestRateController.dispose();
+    discountController.dispose();
+    super.dispose();
   }
 
   void _addProduct() {
     final productCubit = context.read<ProductCubit>();
     if (productCubit.products.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('❌ لا توجد منتجات متاحة')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('❌ لا توجد منتجات متاحة')));
       return;
     }
     setState(() {
-      invoice.items.add(SalesInvoiceItem(product: productCubit.products.first));
+      widget.invoice.items.add(
+        SalesInvoiceItem(product: productCubit.products.first),
+      );
     });
   }
 
-  void _saveInvoice() async {
-    // التحقق من البيانات
-    if (invoice.customerId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('❌ يرجى اختيار عميل')),
-      );
+  Future<void> _saveInvoice() async {
+    if (widget.invoice.customerId == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('❌ يرجى اختيار عميل')));
       return;
     }
-
-    if (invoice.items.isEmpty) {
+    if (widget.invoice.items.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('❌ يرجى إضافة منتج واحد على الأقل')),
       );
       return;
     }
-
-    if (invoice.paymentType == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('❌ يرجى اختيار نوع الدفع')),
-      );
+    if (widget.invoice.paymentType == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('❌ يرجى اختيار نوع الدفع')));
       return;
     }
 
-    // حفظ معلومات الدفع الآجل
-    invoice.paidNow = double.tryParse(paidNowController.text) ?? 0;
-    invoice.interestRate = double.tryParse(interestRateController.text) ?? 0;
+    // احفظ القيم الرقمية من الحقول
+    widget.invoice.paidNow = double.tryParse(paidNowController.text) ?? 0;
+    widget.invoice.interestRate =
+        double.tryParse(interestRateController.text) ?? 0;
 
-    // حفظ الفاتورة
-    await context.read<SalesInvoiceCubit>().createInvoice(invoice);
+    await context.read<SalesInvoiceCubit>().createInvoice(widget.invoice);
   }
 
   @override
@@ -88,7 +95,10 @@ class _SalesInvoiceScreenState extends State<SalesInvoiceScreen> {
       listener: (context, state) {
         if (state is SalesInvoiceSuccess) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message), backgroundColor: Colors.green),
+            SnackBar(
+              content: Text(state.message),
+              backgroundColor: Colors.green,
+            ),
           );
           Navigator.pop(context);
         } else if (state is SalesInvoiceError) {
@@ -114,6 +124,8 @@ class _SalesInvoiceScreenState extends State<SalesInvoiceScreen> {
               return const Center(child: CircularProgressIndicator());
             }
 
+            final products = context.read<ProductCubit>().products;
+
             return SingleChildScrollView(
               padding: padding,
               child: Center(
@@ -135,73 +147,33 @@ class _SalesInvoiceScreenState extends State<SalesInvoiceScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // اختيار العميل
-                        BlocBuilder<CustomerCubit, CustomerState>(
-                          builder: (context, customerState) {
-                            if (customerState is CustomerLoaded) {
-                              final customers = customerState.customers;
-                              return CustomInputField(
-                                label: "العميل",
-                                hint: "اختر العميل",
-                                items: customers.map((c) => c.name).toList(),
-                                selectedValue: invoice.customerName,
-                                onItemSelected: (value) {
-                                  final customer = customers.firstWhere(
-                                    (c) => c.name == value,
-                                  );
-                                  setState(() {
-                                    invoice.customerId = customer.id;
-                                    invoice.customerName = customer.name;
-                                  });
-                                },
-                                prefixIcon: const Icon(Icons.person, color: Colors.white70),
-                              );
-                            }
-                            return const CircularProgressIndicator();
+                        CustomerAndPaymentSection(
+                          invoice: widget.invoice,
+                          paymentMethods: paymentMethods,
+                          onCustomerSelected: (id, name) {
+                            setState(() {
+                              widget.invoice.customerId = id;
+                              widget.invoice.customerName = name;
+                            });
                           },
+                          onPaymentTypeSelected: (type) =>
+                              setState(() => widget.invoice.paymentType = type),
                         ),
 
                         const SizedBox(height: 16),
 
-                        // نوع الدفع
-                        CustomInputField(
-                          label: "نوع الدفع",
-                          hint: "اختر نوع الدفع",
-                          items: paymentMethods,
-                          selectedValue: invoice.paymentType,
-                          onItemSelected: (value) =>
-                              setState(() => invoice.paymentType = value),
-                          prefixIcon: const Icon(Icons.payment, color: Colors.white70),
-                        ),
-
-                        const SizedBox(height: 16),
-
-                        // تاريخ الفاتورة
-                        CustomInputField(
-                          label: "تاريخ الفاتورة",
-                          hint: "اختر التاريخ",
-                          readOnly: true,
-                          controller: TextEditingController(
-                            text: "${invoice.invoiceDate!.day}/${invoice.invoiceDate!.month}/${invoice.invoiceDate!.year}",
+                        InvoiceDateField(
+                          date: widget.invoice.invoiceDate!,
+                          onPick: (picked) => setState(
+                            () => widget.invoice.invoiceDate = picked,
                           ),
-                          prefixIcon: const Icon(Icons.calendar_today, color: Colors.white70),
-                          onTap: () async {
-                            final picked = await showDatePicker(
-                              context: context,
-                              initialDate: invoice.invoiceDate!,
-                              firstDate: DateTime(2020),
-                              lastDate: DateTime(2100),
-                            );
-                            if (picked != null) {
-                              setState(() => invoice.invoiceDate = picked);
-                            }
-                          },
                         ),
 
                         const SizedBox(height: 24),
 
                         ProductsTableWidget(
-                          invoice: invoice,
+                          invoice: widget.invoice,
+                          products: products,
                           onChanged: () => setState(() {}),
                         ),
 
@@ -219,21 +191,29 @@ class _SalesInvoiceScreenState extends State<SalesInvoiceScreen> {
                         const SizedBox(height: 24),
 
                         TotalsSectionWidget(
-                          invoice: invoice,
+                          totalBeforeDiscount:
+                              widget.invoice.totalBeforeDiscount,
+                          totalAfterDiscount: widget.invoice.totalAfterDiscount,
                           discountController: discountController,
-                          onChanged: () => setState(() {}),
+                          onDiscountChanged: (d) =>
+                              setState(() => widget.invoice.discount = d),
                         ),
 
-                        if (invoice.paymentType == 'آجل')
+                        if (widget.invoice.paymentType == 'آجل') ...[
+                          const SizedBox(height: 16),
                           DeferredPaymentWidget(
-                            invoice: invoice,
+                            baseTotalAfterDiscount:
+                                widget.invoice.totalAfterDiscount,
                             paidNowController: paidNowController,
                             interestRateController: interestRateController,
-                            paidNow: invoice.paidNow,
-                            interestRate: invoice.interestRate,
-                            onPaidNowChanged: (v) => setState(() => invoice.paidNow = v),
-                            onInterestRateChanged: (v) => setState(() => invoice.interestRate = v),
+                            paidNow: widget.invoice.paidNow,
+                            interestRate: widget.invoice.interestRate,
+                            onPaidNowChanged: (v) =>
+                                setState(() => widget.invoice.paidNow = v),
+                            onInterestRateChanged: (v) =>
+                                setState(() => widget.invoice.interestRate = v),
                           ),
+                        ],
 
                         const SizedBox(height: 30),
 
@@ -265,3 +245,4 @@ class _SalesInvoiceScreenState extends State<SalesInvoiceScreen> {
     );
   }
 }
+

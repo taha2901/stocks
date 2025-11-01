@@ -6,7 +6,7 @@ import 'package:management_stock/core/constants/app_constants.dart';
 class InventoryTable extends StatelessWidget {
   final List<dynamic>? products;
 
-  const InventoryTable({super.key, required this.products});
+  const InventoryTable({super.key, required this.products, required bool isDesktop});
 
   @override
   Widget build(BuildContext context) {

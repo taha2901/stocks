@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:management_stock/core/widgets/custom_text_field.dart';
-import 'package:management_stock/models/sales_invoice_model.dart';
 
-class DeferredPaymentWidget extends StatefulWidget {
-  final SalesInvoiceModel invoice;
+class DeferredPaymentWidget extends StatelessWidget {
+  final double baseTotalAfterDiscount;
   final TextEditingController paidNowController;
   final TextEditingController interestRateController;
   final double paidNow;
@@ -13,7 +12,7 @@ class DeferredPaymentWidget extends StatefulWidget {
 
   const DeferredPaymentWidget({
     super.key,
-    required this.invoice,
+    required this.baseTotalAfterDiscount,
     required this.paidNowController,
     required this.interestRateController,
     required this.paidNow,
@@ -22,18 +21,12 @@ class DeferredPaymentWidget extends StatefulWidget {
     required this.onInterestRateChanged,
   });
 
-  double get totalAfterInterest =>
-      invoice.totalAfterDiscount + (invoice.totalAfterDiscount * interestRate / 100);
+  double _totalAfterInterest(double base, double rate) => base + (base * rate / 100);
 
-  @override
-  State<DeferredPaymentWidget> createState() => _DeferredPaymentWidgetState();
-}
-
-class _DeferredPaymentWidgetState extends State<DeferredPaymentWidget> {
   @override
   Widget build(BuildContext context) {
-    final totalAfterInterest = widget.totalAfterInterest;
-    final remaining = totalAfterInterest - widget.paidNow;
+    final totalAfterInterest = _totalAfterInterest(baseTotalAfterDiscount, interestRate);
+    final remaining = (totalAfterInterest - paidNow).clamp(0, double.infinity);
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -49,27 +42,21 @@ class _DeferredPaymentWidgetState extends State<DeferredPaymentWidget> {
             children: [
               Expanded(
                 child: CustomInputField(
-                  controller: widget.paidNowController,
+                  controller: paidNowController,
                   label: "المدفوع الآن",
                   hint: "0",
                   isNumber: true,
-                  onChanged: (val) {
-                    final paid = double.tryParse(val) ?? 0;
-                    setState(() => widget.onPaidNowChanged(paid));
-                  },
+                  onChanged: (val) => onPaidNowChanged(double.tryParse(val) ?? 0),
                 ),
               ),
               const SizedBox(width: 16),
               Expanded(
                 child: CustomInputField(
-                  controller: widget.interestRateController,
+                  controller: interestRateController,
                   label: "نسبة الفائدة (%)",
                   hint: "0",
                   isNumber: true,
-                  onChanged: (val) {
-                    final rate = double.tryParse(val) ?? 0;
-                    setState(() => widget.onInterestRateChanged(rate));
-                  },
+                  onChanged: (val) => onInterestRateChanged(double.tryParse(val) ?? 0),
                 ),
               ),
               const SizedBox(width: 16),
