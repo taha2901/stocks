@@ -1,7 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:management_stock/core/services/purchase_invoice_service.dart';
 import 'package:management_stock/cubits/purchase/states.dart';
-import 'package:management_stock/models/purchase_invoice_item.dart';
+import 'package:management_stock/models/purchase/purchase_invoice_item.dart';
 
 class PurchaseInvoiceCubit extends Cubit<PurchaseInvoiceState> {
   final PurchaseInvoiceServices _services;

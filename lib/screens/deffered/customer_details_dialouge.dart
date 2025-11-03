@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:management_stock/core/widgets/custom_text_field.dart';
 import 'package:management_stock/cubits/deffered/cubit.dart';
-import 'package:management_stock/models/defferred_account_model.dart';
+import 'package:management_stock/models/deffered/defferred_account_model.dart';
+import 'package:management_stock/screens/deffered/payment_reciept_print.dart';
 
 class CustomerDetailsDialog extends StatelessWidget {
   final DeferredAccountModel account;
@@ -11,6 +12,11 @@ class CustomerDetailsDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 🔥 فلتر الفواتير: اعرض فقط اللي عليها فلوس
+    final unpaidInvoices = account.invoices
+        .where((invoice) => invoice.remainingAmount > 0)
+        .toList();
+
     return Dialog(
       backgroundColor: const Color(0xFF2C2F48),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -42,25 +48,46 @@ class CustomerDetailsDialog extends StatelessWidget {
             const SizedBox(height: 16),
             _buildSummaryCard(account),
             const SizedBox(height: 20),
-            const Text(
-              "الفواتير:",
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "${unpaidInvoices.length} فاتورة",
+                  style: const TextStyle(color: Colors.white70, fontSize: 14),
+                ),
+                const Text(
+                  "الفواتير المستحقة:",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 12),
-            Expanded(
-              child: ListView.builder(
-                shrinkWrap: true,
-                itemCount: account.invoices.length,
-                itemBuilder: (context, index) {
-                  final invoice = account.invoices[index];
-                  return _buildInvoiceCard(context, account, invoice);
-                },
+            // 🔥 عرض الفواتير غير المدفوعة فقط
+            if (unpaidInvoices.isEmpty)
+              const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(24.0),
+                  child: Text(
+                    "✅ لا توجد فواتير مستحقة",
+                    style: TextStyle(color: Colors.green, fontSize: 16),
+                  ),
+                ),
+              )
+            else
+              Expanded(
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: unpaidInvoices.length,
+                  itemBuilder: (context, index) {
+                    final invoice = unpaidInvoices[index];
+                    return _buildInvoiceCard(context, account, invoice);
+                  },
+                ),
               ),
-            ),
           ],
         ),
       ),
@@ -76,7 +103,7 @@ class CustomerDetailsDialog extends StatelessWidget {
       ),
       child: Column(
         children: [
-          _buildSummaryRow("عدد الفواتير", "${account.invoiceCount}"),
+          _buildSummaryRow("عدد الفواتير المستحقة", "${account.invoices.where((i) => i.remainingAmount > 0).length}"),
           _buildSummaryRow(
             "الإجمالي",
             "${account.totalAmount.toStringAsFixed(2)} جنيه",
@@ -139,8 +166,8 @@ class CustomerDetailsDialog extends StatelessWidget {
                   onPressed: () {
                     _showAddPaymentDialog(
                       context,
-                      account.customerId,
-                      invoice.invoiceId,
+                      account,
+                      invoice,
                     );
                   },
                   icon: const Icon(Icons.payment, size: 16),
@@ -202,8 +229,8 @@ class CustomerDetailsDialog extends StatelessWidget {
 
   void _showAddPaymentDialog(
     BuildContext context,
-    String customerId,
-    String invoiceId,
+    DeferredAccountModel account,
+    DeferredInvoice invoice,
   ) {
     final amountController = TextEditingController();
     final notesController = TextEditingController();
@@ -220,6 +247,11 @@ class CustomerDetailsDialog extends StatelessWidget {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            Text(
+              "المتبقي: ${invoice.remainingAmount.toStringAsFixed(2)} جنيه",
+              style: const TextStyle(color: Colors.orange, fontSize: 16),
+            ),
+            const SizedBox(height: 16),
             CustomInputField(
               controller: amountController,
               label: "المبلغ",
@@ -242,31 +274,142 @@ class CustomerDetailsDialog extends StatelessWidget {
             child: const Text("إلغاء"),
           ),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               final amount = double.tryParse(amountController.text) ?? 0;
-              if (amount > 0) {
-                context.read<DeferredAccountCubit>().addPayment(
-                  customerId: customerId,
-                  invoiceId: invoiceId,
-                  amount: amount,
-                  notes: notesController.text.isNotEmpty
-                      ? notesController.text
-                      : null,
-                );
-                Navigator.pop(dialogContext);
-              } else {
+              if (amount <= 0) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     content: Text("يرجى إدخال مبلغ صحيح"),
                     backgroundColor: Colors.red,
                   ),
                 );
+                return;
               }
+
+              if (amount > invoice.remainingAmount) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      "المبلغ أكبر من المتبقي (${invoice.remainingAmount.toStringAsFixed(2)} جنيه)",
+                    ),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+                return;
+              }
+
+              // حفظ الدفعة
+              await context.read<DeferredAccountCubit>().addPayment(
+                    customerId: account.customerId,
+                    invoiceId: invoice.invoiceId,
+                    amount: amount,
+                    notes: notesController.text.isNotEmpty
+                        ? notesController.text
+                        : null,
+                  );
+
+              Navigator.pop(dialogContext);
+
+              // 🔥 عرض إيصال الدفعة
+              _showPaymentReceiptDialog(
+                context,
+                account.customerName,
+                invoice,
+                amount,
+                notesController.text,
+              );
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF1976D2),
             ),
             child: const Text("حفظ"),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showPaymentReceiptDialog(
+    BuildContext context,
+    String customerName,
+    DeferredInvoice invoice,
+    double paidAmount,
+    String notes,
+  ) {
+    final newRemaining = invoice.remainingAmount - paidAmount;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF2C2F48),
+        title: const Text(
+          'تم إضافة الدفعة بنجاح ✅',
+          style: TextStyle(color: Colors.white),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            _buildReceiptRow("العميل:", customerName),
+            _buildReceiptRow("المبلغ المدفوع:", "${paidAmount.toStringAsFixed(2)} جنيه"),
+            _buildReceiptRow(
+              "المتبقي:",
+              "${newRemaining.toStringAsFixed(2)} جنيه",
+              valueColor: newRemaining > 0 ? Colors.orange : Colors.green,
+            ),
+            if (notes.isNotEmpty) _buildReceiptRow("ملاحظات:", notes),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('إغلاق'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => PaymentReceiptPrintWidget(
+                    customerName: customerName,
+                    invoiceDate: invoice.invoiceDate,
+                    totalAmount: invoice.totalAmount,
+                    // previousPaid: invoice.paidAmount - paidAmount,
+                    previousPaid: invoice.paidAmount,
+                    currentPayment: paidAmount,
+                    newRemaining: newRemaining,
+                    notes: notes.isNotEmpty ? notes : null,
+                  ),
+                ),
+              );
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+            child: const Text('طباعة الإيصال'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildReceiptRow(String label, String value, {Color? valueColor}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            value,
+            style: TextStyle(
+              color: valueColor ?? Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+            ),
+          ),
+          Text(
+            label,
+            style: const TextStyle(color: Colors.white70, fontSize: 16),
           ),
         ],
       ),

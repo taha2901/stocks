@@ -1,7 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:management_stock/core/services/deffered_account_services.dart';
 import 'package:management_stock/cubits/deffered/states.dart';
-import 'package:management_stock/models/defferred_account_model.dart';
+import 'package:management_stock/models/deffered/defferred_account_model.dart';
 import 'package:uuid/uuid.dart';
 
 class DeferredAccountCubit extends Cubit<DeferredAccountState> {

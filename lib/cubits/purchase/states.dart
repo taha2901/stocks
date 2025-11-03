@@ -1,4 +1,4 @@
-import 'package:management_stock/models/purchase_invoice_item.dart';
+import 'package:management_stock/models/purchase/purchase_invoice_item.dart';
 
 abstract class PurchaseInvoiceState {}
 

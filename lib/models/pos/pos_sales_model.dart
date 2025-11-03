@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:management_stock/models/pos_cart_model.dart';
+import 'package:management_stock/models/pos/pos_cart_model.dart';
 import 'package:management_stock/models/product.dart';
 import 'package:uuid/uuid.dart';
 

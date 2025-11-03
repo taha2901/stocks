@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:management_stock/core/widgets/custom_text_field.dart';
 import 'package:management_stock/cubits/Customers/cubit.dart';
 import 'package:management_stock/cubits/Customers/states.dart';
-import 'package:management_stock/models/sales_invoice_model.dart';
+import 'package:management_stock/models/sales/sales_invoice_model.dart';
 
 class CustomerAndPaymentSection extends StatelessWidget {
   final SalesInvoiceModel invoice;

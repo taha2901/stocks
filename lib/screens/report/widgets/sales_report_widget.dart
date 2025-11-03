@@ -3,9 +3,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:management_stock/core/constants/app_constants.dart';
-import 'package:management_stock/screens/report/sales_division_card.dart';
-import 'package:management_stock/screens/report/states_grid.dart';
-import 'package:management_stock/screens/report/top_product_table.dart';
+import 'package:management_stock/screens/report/widgets/sales_division_card.dart';
+import 'package:management_stock/screens/report/widgets/states_grid.dart';
+import 'package:management_stock/screens/report/widgets/top_product_table.dart';
 
 class SalesReportWidget extends StatelessWidget {
   final Map<String, dynamic> data;

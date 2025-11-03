@@ -3,9 +3,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:management_stock/core/constants/app_constants.dart';
-import 'package:management_stock/screens/report/category_breakdown_card.dart';
-import 'package:management_stock/screens/report/inventory_table.dart';
-import 'package:management_stock/screens/report/states_grid.dart';
+import 'package:management_stock/screens/report/widgets/category_breakdown_card.dart';
+import 'package:management_stock/screens/report/widgets/inventory_table.dart';
+import 'package:management_stock/screens/report/widgets/states_grid.dart';
 
 class InventoryReportWidget extends StatelessWidget {
   final Map<String, dynamic> data;

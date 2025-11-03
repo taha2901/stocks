@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:management_stock/core/constants/app_constants.dart';
-import 'package:management_stock/core/services/export_services.dart';
 import 'package:management_stock/core/widgets/custom_button.dart';
 import 'package:management_stock/cubits/report/cubit.dart';
 import 'package:management_stock/cubits/report/states.dart';
-import 'package:management_stock/screens/report/error_widget.dart';
-import 'package:management_stock/screens/report/export_button.dart';
-import 'package:management_stock/screens/report/inventory_report_widget.dart';
-import 'package:management_stock/screens/report/period_button.dart';
-import 'package:management_stock/screens/report/profile_report_widget.dart';
-import 'package:management_stock/screens/report/report_tab.dart';
-import 'package:management_stock/screens/report/sales_report_widget.dart';
-import 'package:open_file/open_file.dart';
+import 'package:management_stock/screens/report/widgets/error_widget.dart';
+import 'package:management_stock/screens/report/widgets/inventory_report_widget.dart';
+import 'package:management_stock/screens/report/widgets/period_button.dart';
+import 'package:management_stock/screens/report/widgets/prints/inventory_print.dart';
+import 'package:management_stock/screens/report/widgets/prints/profir_report_print.dart';
+import 'package:management_stock/screens/report/widgets/prints/sales_report_print.dart';
+import 'package:management_stock/screens/report/widgets/profile_report_widget.dart';
+import 'package:management_stock/screens/report/widgets/report_tab.dart';
+import 'package:management_stock/screens/report/widgets/sales_report_widget.dart';
 
 class ReportsScreen extends StatefulWidget {
   const ReportsScreen({super.key});
@@ -90,7 +90,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
         );
       },
     );
-
     if (picked != null) {
       setState(() {
         selectedPeriod = 'مخصص';
@@ -108,7 +107,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
       appBar: _buildAppBar(),
       body: Column(
         children: [
-          _buildExportButtons(),
+          _buildPrintButton(), // 🔥 زر الطباعة
           _buildPeriodFilter(),
           _buildReportTabs(),
           Expanded(child: _buildReportBody()),
@@ -117,267 +116,223 @@ class _ReportsScreenState extends State<ReportsScreen> {
     );
   }
 
-  // ==================== AppBar ====================
-PreferredSizeWidget _buildAppBar() {
-  return AppBar(
-    backgroundColor: const Color(0xFF2C2F48),
-    automaticallyImplyLeading: false,
-    title: ResponsiveLayout(
-      mobile: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          // زر العودة مع أيقونة فقط لأنه عرض الهاتف ضيق
-          IconButton(
-            icon: const Icon(Icons.home, color: Colors.blue),
-            onPressed: () => Navigator.pop(context),
-            tooltip: 'الرجوع ل الصفحة الرئيسية',
-          ),
-          Expanded(
-            child: Text(
-              'التقارير 📊',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: Responsive.fontSize(context, 18),
-                fontWeight: FontWeight.bold,
+  PreferredSizeWidget _buildAppBar() {
+    return AppBar(
+      backgroundColor: const Color(0xFF2C2F48),
+      automaticallyImplyLeading: false,
+      title: ResponsiveLayout(
+        mobile: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.home, color: Colors.blue),
+              onPressed: () => Navigator.pop(context),
+              tooltip: 'الرجوع للصفحة الرئيسية',
+            ),
+            Expanded(
+              child: Text(
+                'التقارير 📊',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: Responsive.fontSize(context, 18),
+                  fontWeight: FontWeight.bold,
+                ),
+                overflow: TextOverflow.ellipsis,
               ),
-              overflow: TextOverflow.ellipsis,
             ),
-          ),
-          Container(
-            padding: const EdgeInsets.all(4),
-            decoration: BoxDecoration(
-              color: Colors.blueAccent,
-              borderRadius: BorderRadius.circular(6),
+            Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: Colors.blueAccent,
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: const Icon(Icons.analytics, color: Colors.white, size: 20),
             ),
-            child: const Icon(Icons.analytics, color: Colors.white, size: 20),
-          ),
-        ],
-      ),
-      tablet: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          CustomButton(
-            text: "الرجوع ل الصفحة الرئيسية",
-            icon: Icons.home,
-            backgroundColor: Colors.white,
-            textColor: Colors.blue,
-            borderColor: Colors.blue,
-            fullWidth: false,
-            onPressed: () => Navigator.pop(context),
-            isOutlined: true,
-            padding: Responsive.value(
-              context: context,
-              mobile: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              tablet: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              desktop: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          ],
+        ),
+        tablet: Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            CustomButton(
+              text: "الرجوع للصفحة الرئيسية",
+              icon: Icons.home,
+              backgroundColor: Colors.white,
+              textColor: Colors.blue,
+              borderColor: Colors.blue,
+              fullWidth: false,
+              onPressed: () => Navigator.pop(context),
+              isOutlined: true,
             ),
-          ),
-          const Spacer(),
-          Text(
-            'التقارير والإحصائيات 📊',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: Responsive.fontSize(context, 20),
-              fontWeight: FontWeight.bold,
+            const SizedBox(width: 16),
+            const Text(
+              'التقارير 📊',
+              style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
             ),
-          ),
-          const SizedBox(width: 8),
-          Container(
-            padding: const EdgeInsets.all(4),
-            decoration: BoxDecoration(
-              color: Colors.blueAccent,
-              borderRadius: BorderRadius.circular(6),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: Colors.blueAccent,
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: const Icon(Icons.analytics, color: Colors.white, size: 24),
             ),
-            child: const Icon(Icons.analytics, color: Colors.white, size: 20),
-          ),
-        ],
-      ),
-      desktop: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          CustomButton(
-            text: "الرجوع ل الصفحة الرئيسية",
-            icon: Icons.home,
-            backgroundColor: Colors.white,
-            textColor: Colors.blue,
-            borderColor: Colors.blue,
-            fullWidth: false,
-            onPressed: () => Navigator.pop(context),
-            isOutlined: true,
-            padding: Responsive.value(
-              context: context,
-              mobile: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-              tablet: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              desktop: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-            ),
-          ),
-          const Spacer(),
-          Text(
-            'التقارير والإحصائيات 📊',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: Responsive.fontSize(context, 22),
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(width: 8),
-          Container(
-            padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(
-              color: Colors.blueAccent,
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: const Icon(Icons.analytics, color: Colors.white, size: 24),
-          ),
-        ],
-      ),
-    ),
-    actions: [
-      IconButton(
-        icon: const Icon(Icons.refresh, color: Colors.white),
-        onPressed: _loadReports,
-        tooltip: 'تحديث التقارير',
-        iconSize: Responsive.value(
-          context: context,
-          mobile: 20,
-          tablet: 24,
-          desktop: 28,
+          ],
         ),
       ),
-    ],
-  );
-}
+    );
+  }
 
-
-// ==================== Export Buttons ====================
-Widget _buildExportButtons() {
-  return Container(
-    color: const Color(0xFF2C2F48),
-    padding: Responsive.value(
-      context: context,
-      mobile: const EdgeInsets.all(12),
-      tablet: const EdgeInsets.all(16),
-      desktop: const EdgeInsets.all(20),
-    ),
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.end,
-      children: [
-        Expanded(
-          child: ExportButton(
-            label: 'تصدير CSV',
-            icon: Icons.table_chart,
-            color: Colors.green,
-            onPressed: _exportToCSV,
-            // fontSize: Responsive.fontSize(context, 14),
-            // padding: Responsive.value(
-            //   context: context,
-            //   mobile: const EdgeInsets.symmetric(vertical: 12),
-            //   tablet: const EdgeInsets.symmetric(vertical: 14),
-            //   desktop: const EdgeInsets.symmetric(vertical: 16),
-            // ),
-          ),
-        ),
-        SizedBox(width: Responsive.spacing(context, 12)),
-        Expanded(
-          child: ExportButton(
-            label: 'تصدير PDF',
-            icon: Icons.picture_as_pdf,
-            color: Colors.redAccent,
-            onPressed: _exportToPDF,
-            // ق
-          ),
-        ),
-      ],
-    ),
-  );
-}
-
-// ==================== Period Filter ====================
-Widget _buildPeriodFilter() {
-  return Container(
-    color: const Color(0xFF2C2F48),
-    padding: Responsive.value(
-      context: context,
-      mobile: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      tablet: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      desktop: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-    ),
-    child: SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
+  // 🔥 زر الطباعة
+  Widget _buildPrintButton() {
+    return Container(
+      padding: const EdgeInsets.all(16),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          PeriodButton(
-            label: 'مخصص',
-            icon: Icons.date_range,
-            isSelected: selectedPeriod == 'مخصص',
-            onPressed: _selectCustomDateRange,
-            // fontSize: Responsive.fontSize(context, 14),
-          ),
-          SizedBox(width: Responsive.spacing(context, 8)),
-          PeriodButton(
-            label: 'الكل',
-            icon: Icons.all_inclusive,
-            isSelected: selectedPeriod == 'الكل',
-            onPressed: () {
-              _setDateRange('الكل');
-              _loadReports();
-            },
-            // // fontSize: Responsive.fontSize(context, 14),
-          ),
-          SizedBox(width: Responsive.spacing(context, 8)),
-          PeriodButton(
-            label: 'السنة',
-            icon: Icons.calendar_today,
-            isSelected: selectedPeriod == 'السنة',
-            onPressed: () {
-              _setDateRange('السنة');
-              _loadReports();
-            },
-            // // fontSize: Responsive.fontSize(context, 14),
-          ),
-          SizedBox(width: Responsive.spacing(context, 8)),
-          PeriodButton(
-            label: 'الشهر',
-            icon: Icons.calendar_month,
-            isSelected: selectedPeriod == 'الشهر',
-            onPressed: () {
-              _setDateRange('الشهر');
-              _loadReports();
-            },
-            // // fontSize: Responsive.fontSize(context, 14),
-          ),
-          SizedBox(width: Responsive.spacing(context, 8)),
-          PeriodButton(
-            label: 'الأسبوع',
-            icon: Icons.calendar_view_week,
-            isSelected: selectedPeriod == 'الأسبوع',
-            onPressed: () {
-              _setDateRange('الأسبوع');
-              _loadReports();
-            },
-            // // fontSize: Responsive.fontSize(context, 14),
-
-          ),
-          SizedBox(width: Responsive.spacing(context, 8)),
-          PeriodButton(
-            label: 'اليوم',
-            icon: Icons.today,
-            isSelected: selectedPeriod == 'اليوم',
-            onPressed: () {
-              _setDateRange('اليوم');
-              _loadReports();
-            },
-            // // fontSize: Responsive.fontSize(context, 14),
+          ElevatedButton.icon(
+            onPressed: _handlePrint,
+            icon: const Icon(Icons.print, size: 20),
+            label: Text(
+              'طباعة التقرير',
+              style: TextStyle(fontSize: Responsive.fontSize(context, 16)),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+            ),
           ),
         ],
       ),
-    ),
-  );
-}
+    );
+  }
 
-  // ==================== Report Tabs ====================
+  void _handlePrint() {
+    final state = context.read<ReportsCubit>().state;
+    if (state is! AllReportsLoaded) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('لا توجد بيانات للطباعة'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    if (selectedReportTab == 0) {
+      // تقرير المبيعات
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => SalesReportPrintWidget(
+            data: state.salesReport,
+            period: selectedPeriod,
+            startDate: startDate,
+            endDate: endDate,
+          ),
+        ),
+      );
+    } else if (selectedReportTab == 1) {
+      // تقرير المخزون
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => InventoryReportPrintWidget(
+            data: state.inventoryReport,
+            period: selectedPeriod,
+          ),
+        ),
+      );
+    } else if (selectedReportTab == 2) {
+      // تقرير الأرباح
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ProfitReportPrintWidget(
+            data: state.profitReport,
+            period: selectedPeriod,
+            startDate: startDate,
+            endDate: endDate,
+          ),
+        ),
+      );
+    }
+  }
+
+  Widget _buildPeriodFilter() {
+    return Container(
+      padding: Responsive.pagePadding(context),
+      color: const Color(0xFF2C2F48),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        reverse: true,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            PeriodButton(
+              label: 'مخصص',
+              icon: Icons.date_range,
+              isSelected: selectedPeriod == 'مخصص',
+              onPressed: _selectCustomDateRange,
+            ),
+            SizedBox(width: Responsive.spacing(context, 8)),
+            PeriodButton(
+              label: 'الكل',
+              icon: Icons.all_inclusive,
+              isSelected: selectedPeriod == 'الكل',
+              onPressed: () {
+                _setDateRange('الكل');
+                _loadReports();
+              },
+            ),
+            SizedBox(width: Responsive.spacing(context, 8)),
+            PeriodButton(
+              label: 'السنة',
+              icon: Icons.calendar_today,
+              isSelected: selectedPeriod == 'السنة',
+              onPressed: () {
+                _setDateRange('السنة');
+                _loadReports();
+              },
+            ),
+            SizedBox(width: Responsive.spacing(context, 8)),
+            PeriodButton(
+              label: 'الشهر',
+              icon: Icons.calendar_view_month,
+              isSelected: selectedPeriod == 'الشهر',
+              onPressed: () {
+                _setDateRange('الشهر');
+                _loadReports();
+              },
+            ),
+            SizedBox(width: Responsive.spacing(context, 8)),
+            PeriodButton(
+              label: 'الأسبوع',
+              icon: Icons.calendar_view_week,
+              isSelected: selectedPeriod == 'الأسبوع',
+              onPressed: () {
+                _setDateRange('الأسبوع');
+                _loadReports();
+              },
+            ),
+            SizedBox(width: Responsive.spacing(context, 8)),
+            PeriodButton(
+              label: 'اليوم',
+              icon: Icons.today,
+              isSelected: selectedPeriod == 'اليوم',
+              onPressed: () {
+                _setDateRange('اليوم');
+                _loadReports();
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildReportTabs() {
     return Container(
       color: const Color(0xFF2C2F48),
@@ -420,7 +375,6 @@ Widget _buildPeriodFilter() {
     );
   }
 
-  // ==================== Report Body ====================
   Widget _buildReportBody() {
     return BlocBuilder<ReportsCubit, ReportsState>(
       builder: (context, state) {
@@ -442,12 +396,9 @@ Widget _buildPeriodFilter() {
             padding: Responsive.pagePadding(context),
             child: Column(
               children: [
-                if (selectedReportTab == 0)
-                  SalesReportWidget(data: state.salesReport),
-                if (selectedReportTab == 1)
-                  InventoryReportWidget(data: state.inventoryReport),
-                if (selectedReportTab == 2)
-                  ProfitReportWidget(data: state.profitReport),
+                if (selectedReportTab == 0) SalesReportWidget(data: state.salesReport),
+                if (selectedReportTab == 1) InventoryReportWidget(data: state.inventoryReport),
+                if (selectedReportTab == 2) ProfitReportWidget(data: state.profitReport),
               ],
             ),
           );
@@ -461,110 +412,5 @@ Widget _buildPeriodFilter() {
         );
       },
     );
-  }
-
-  // ==================== Export Functions ====================
-  Future<void> _exportToCSV() async {
-    try {
-      final exportService = ExportServicesImpl();
-      String? filePath;
-
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => const Center(
-          child: CircularProgressIndicator(color: Colors.green),
-        ),
-      );
-
-      if (selectedReportTab == 0) {
-        final salesReport = context.read<ReportsCubit>().salesReport;
-        if (salesReport != null) {
-          filePath = await exportService.exportSalesReportToCSV(salesReport);
-        }
-      } else if (selectedReportTab == 1) {
-        final inventoryReport = context.read<ReportsCubit>().inventoryReport;
-        if (inventoryReport != null) {
-          filePath = await exportService.exportInventoryReportToCSV(inventoryReport);
-        }
-      } else if (selectedReportTab == 2) {
-        final profitReport = context.read<ReportsCubit>().profitReport;
-        if (profitReport != null) {
-          filePath = await exportService.exportProfitReportToCSV(profitReport);
-        }
-      }
-
-      Navigator.pop(context);
-
-      if (filePath != null) {
-        final result = await OpenFile.open(filePath);
-        if (result.type == ResultType.done) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('تم التصدير والفتح بنجاح! ✅', textAlign: TextAlign.right),
-              backgroundColor: Colors.green,
-              duration: Duration(seconds: 3),
-            ),
-          );
-        }
-      }
-    } catch (e) {
-      Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('فشل التصدير: $e', textAlign: TextAlign.right),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-  }
-
-  Future<void> _exportToPDF() async {
-    try {
-      final exportService = ExportServicesImpl();
-
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => const Center(
-          child: CircularProgressIndicator(color: Colors.redAccent),
-        ),
-      );
-
-      if (selectedReportTab == 0) {
-        final salesReport = context.read<ReportsCubit>().salesReport;
-        if (salesReport != null) {
-          await exportService.exportSalesReportToPDF(salesReport, selectedPeriod);
-        }
-      } else if (selectedReportTab == 1) {
-        final inventoryReport = context.read<ReportsCubit>().inventoryReport;
-        if (inventoryReport != null) {
-          await exportService.exportInventoryReportToPDF(inventoryReport);
-        }
-      } else if (selectedReportTab == 2) {
-        final profitReport = context.read<ReportsCubit>().profitReport;
-        if (profitReport != null) {
-          await exportService.exportProfitReportToPDF(profitReport, selectedPeriod);
-        }
-      }
-
-      Navigator.pop(context);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('تم فتح PDF! 📄', textAlign: TextAlign.right),
-          backgroundColor: Colors.green,
-          duration: Duration(seconds: 3),
-        ),
-      );
-    } catch (e) {
-      Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('فشل التصدير: $e', textAlign: TextAlign.right),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
   }
 }

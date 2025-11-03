@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:management_stock/core/constants/app_constants.dart';
-import 'package:management_stock/screens/report/division_row.dart';
+import 'package:management_stock/screens/report/widgets/division_row.dart';
 
 class SalesDivisionCard extends StatelessWidget {
   final Map<String, dynamic> data;

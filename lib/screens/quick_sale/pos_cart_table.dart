@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:management_stock/models/pos_cart_model.dart';
+import 'package:management_stock/models/pos/pos_cart_model.dart';
 
 class POSCartTable extends StatelessWidget {
   final List<POSCartItem> cart;

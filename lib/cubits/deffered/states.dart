@@ -1,4 +1,4 @@
-import 'package:management_stock/models/defferred_account_model.dart';
+import 'package:management_stock/models/deffered/defferred_account_model.dart';
 
 abstract class DeferredAccountState {}
 

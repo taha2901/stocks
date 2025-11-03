@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:management_stock/models/product.dart';
-import 'package:management_stock/models/sales_invoice_model.dart';
+import 'package:management_stock/models/sales/sales_invoice_model.dart';
 import 'package:management_stock/screens/sales/widgets/product_row_widget.dart';
 
 class ProductsTableWidget extends StatelessWidget {

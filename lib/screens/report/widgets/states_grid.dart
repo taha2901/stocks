@@ -1,7 +1,7 @@
 // Grid الإحصائيات (Responsive)
 import 'package:flutter/material.dart';
 import 'package:management_stock/core/constants/app_constants.dart';
-import 'package:management_stock/screens/report/state_card.dart';
+import 'package:management_stock/screens/report/widgets/state_card.dart';
 
 class StatsGrid extends StatelessWidget {
   final List<Map<String, dynamic>> stats;

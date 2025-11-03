@@ -1,7 +1,7 @@
 import 'package:management_stock/core/helper/api_paths.dart';
 import 'package:management_stock/core/helper/firestore_services.dart';
-import 'package:management_stock/models/defferred_account_model.dart';
-import 'package:management_stock/models/sales_invoice_model.dart';
+import 'package:management_stock/models/deffered/defferred_account_model.dart';
+import 'package:management_stock/models/sales/sales_invoice_model.dart';
 
 abstract class DeferredAccountServices {
   Future<List<DeferredAccountModel>> getDeferredAccounts();

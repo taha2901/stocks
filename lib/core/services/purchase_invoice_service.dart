@@ -2,7 +2,7 @@ import 'package:management_stock/core/helper/api_paths.dart';
 import 'package:management_stock/core/helper/firestore_services.dart';
 import 'package:management_stock/core/services/product_service.dart';
 import 'package:management_stock/models/product.dart';
-import 'package:management_stock/models/purchase_invoice_item.dart';
+import 'package:management_stock/models/purchase/purchase_invoice_item.dart';
 
 abstract class PurchaseInvoiceServices {
   Future<void> createPurchaseInvoice(PurchaseInvoiceModel invoice);

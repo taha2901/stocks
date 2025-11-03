@@ -4,16 +4,19 @@ import 'package:management_stock/core/widgets/custom_button.dart';
 import 'package:management_stock/cubits/products/cubit.dart';
 import 'package:management_stock/cubits/quick_sales/cubit.dart';
 import 'package:management_stock/cubits/quick_sales/states.dart';
-import 'package:management_stock/models/pos_sales_model.dart';
+import 'package:management_stock/models/pos/pos_sales_model.dart';
 import 'package:management_stock/models/product.dart';
-import 'package:management_stock/models/pos_cart_model.dart';
+import 'package:management_stock/models/pos/pos_cart_model.dart';
 import 'package:management_stock/screens/quick_sale/empty_state.dart';
+import 'package:management_stock/screens/quick_sale/inventory_print.dart';
 import 'package:management_stock/screens/quick_sale/pos_action_buttons.dart';
 import 'package:management_stock/screens/quick_sale/pos_bardcode_input.dart';
 import 'package:management_stock/screens/quick_sale/pos_cart_table.dart';
 import 'package:management_stock/screens/quick_sale/pos_cart_total.dart';
+import 'package:management_stock/screens/quick_sale/pos_print.dart';
 import 'package:management_stock/screens/quick_sale/sales_history_items.dart';
-import 'package:management_stock/screens/report/inventory_table.dart';
+import 'package:management_stock/screens/quick_sale/sales_history_print.dart';
+import 'package:management_stock/screens/report/widgets/inventory_table.dart';
 
 class QuickSaleScreen extends StatefulWidget {
   const QuickSaleScreen({super.key});
@@ -26,6 +29,7 @@ class _QuickSaleScreenState extends State<QuickSaleScreen> {
   final TextEditingController barcodeController = TextEditingController();
   int selectedTab = 0; // 0 = POS, 1 = Inventory, 2 = Sales History
   List<POSCartItem> cart = [];
+    POSSaleModel? _savedSale;
 
   late final ProductCubit productCubit;
   late final POSSaleCubit posSaleCubit;
@@ -35,6 +39,45 @@ class _QuickSaleScreenState extends State<QuickSaleScreen> {
     super.initState();
     productCubit = context.read<ProductCubit>();
     posSaleCubit = context.read<POSSaleCubit>();
+  }
+  void _completeSale() {
+    if (cart.isEmpty) return;
+    final sale = POSSaleModel(items: List.from(cart));
+    _savedSale = sale; // 🔥 احفظ الفاتورة
+    context.read<POSSaleCubit>().createSale(sale);
+  }
+
+  void _showPrintDialog() {
+    if (_savedSale == null) return;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF2C2F48),
+        title: const Text('تم البيع بنجاح ✅', style: TextStyle(color: Colors.white)),
+        content: const Text('هل تريد طباعة الفاتورة الآن؟', style: TextStyle(color: Colors.white70)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('لا، شكراً'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => POSSalePrintWidget(sale: _savedSale!),
+                ),
+              );
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+            child: const Text('نعم، اطبع'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -50,6 +93,7 @@ class _QuickSaleScreenState extends State<QuickSaleScreen> {
         if (state is POSSaleSuccess) {
           setState(() => cart.clear());
           _showMessage(state.message, Colors.green);
+          _showPrintDialog(); // 🔥 اسأل عن الطباعة
         } else if (state is POSSaleError) {
           _showMessage(state.error, Colors.red);
         }
@@ -97,21 +141,55 @@ class _QuickSaleScreenState extends State<QuickSaleScreen> {
 
   // ✅ Tab Bar
   Widget _buildTabBar() {
-    return Container(
-      color: const Color(0xFF2C2F48),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          _buildTabButton("سجل المبيعات 📋", 2),
-          const SizedBox(width: 12),
-          _buildTabButton("المخزون", 1),
-          const SizedBox(width: 12),
-          _buildTabButton("نقطة البيع", 0),
-        ],
-      ),
-    );
+  return Container(
+    color: const Color(0xFF2C2F48),
+    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        // زر طباعة حسب التاب المختار
+        if (selectedTab == 1 || selectedTab == 2)
+          IconButton(
+            icon: const Icon(Icons.print, color: Colors.white),
+            onPressed: selectedTab == 1 ? _printInventory : _printSalesHistory,
+          ),
+        const Spacer(),
+        _buildTabButton("سجل المبيعات 📋", 2),
+        const SizedBox(width: 12),
+        _buildTabButton("المخزون", 1),
+        const SizedBox(width: 12),
+        _buildTabButton("نقطة البيع", 0),
+      ],
+    ),
+  );
+}
+
+void _printInventory() {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => InventoryPrintWidget(products: productCubit.products),
+    ),
+  );
+}
+
+void _printSalesHistory() {
+  final sales = (posSaleCubit.state is POSSaleLoaded)
+      ? (posSaleCubit.state as POSSaleLoaded).sales
+      : <POSSaleModel>[];
+
+  if (sales.isEmpty) {
+    _showMessage("لا توجد مبيعات للطباعة", Colors.orange);
+    return;
   }
+
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => SalesHistoryPrintWidget(sales: sales),
+    ),
+  );
+}
 
   Widget _buildTabButton(String label, int index) {
     final isSelected = selectedTab == index;
@@ -270,12 +348,6 @@ class _QuickSaleScreenState extends State<QuickSaleScreen> {
     });
 
     barcodeController.clear();
-  }
-
-  void _completeSale() {
-    if (cart.isEmpty) return;
-    final sale = POSSaleModel(items: List.from(cart));
-    context.read<POSSaleCubit>().createSale(sale);
   }
 
   void _showMessage(String message, Color color) {

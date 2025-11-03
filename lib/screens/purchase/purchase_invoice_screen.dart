@@ -7,8 +7,9 @@ import 'package:management_stock/cubits/purchase/states.dart';
 import 'package:management_stock/cubits/products/cubit.dart';
 import 'package:management_stock/cubits/suppliers/cubit.dart';
 import 'package:management_stock/models/product.dart';
-import 'package:management_stock/models/purchase_invoice_item.dart';
+import 'package:management_stock/models/purchase/purchase_invoice_item.dart';
 import 'package:management_stock/screens/purchase/widgets/purchase_header_widget.dart';
+import 'package:management_stock/screens/purchase/widgets/purchase_print.dart';
 import 'package:management_stock/screens/purchase/widgets/purchase_product_table.dart';
 import 'package:management_stock/screens/purchase/widgets/purchase_total_section.dart';
 
@@ -22,19 +23,17 @@ class PurchaseInvoiceScreen extends StatefulWidget {
 class _PurchaseInvoiceScreenState extends State<PurchaseInvoiceScreen> {
   String? selectedSupplier;
   String? selectedSupplierId;
-  String? paymentType;
   DateTime? invoiceDate;
+  PurchaseInvoiceModel? _savedInvoice;
 
   final TextEditingController discountController = TextEditingController();
   double discount = 0;
 
   List<PurchaseInvoiceItem> invoiceItems = [];
-  // final List<String> paymentMethods = ['كاش']; // حذف 'آجل'
 
   @override
   void initState() {
     super.initState();
-    // تحميل المنتجات والموردين
     context.read<ProductCubit>().fetchProducts();
     context.read<SupplierCubit>().fetchSuppliers();
   }
@@ -63,11 +62,6 @@ class _PurchaseInvoiceScreenState extends State<PurchaseInvoiceScreen> {
       return;
     }
 
-    if (paymentType == null) {
-      _showError("يرجى اختيار نوع الدفع");
-      return;
-    }
-
     if (invoiceDate == null) {
       _showError("يرجى اختيار تاريخ الفاتورة");
       return;
@@ -82,20 +76,60 @@ class _PurchaseInvoiceScreenState extends State<PurchaseInvoiceScreen> {
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       supplierId: selectedSupplierId!,
       supplierName: selectedSupplier!,
-      paymentType: paymentType!,
       invoiceDate: invoiceDate!,
       totalBeforeDiscount: totalBeforeDiscount,
       discount: discount,
-      totalAfterDiscount: totalAfterDiscount,
-      interestRate: 0, // حذف الفائدة نهائياً
-      totalAfterInterest: totalAfterDiscount,
-      paidNow: totalAfterDiscount,
-      remaining: 0,
       items: invoiceItems,
       createdAt: DateTime.now(),
     );
 
     context.read<PurchaseInvoiceCubit>().createInvoice(invoice);
+
+    // 🔥 احتفظ بالفاتورة لإظهارها بعد الحفظ
+    _savedInvoice = invoice;
+  }
+
+  void _showPrintDialog() {
+    if (_savedInvoice == null) return;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF2C2F48),
+        title: const Text(
+          'تم حفظ الفاتورة بنجاح ✅',
+          style: TextStyle(color: Colors.white),
+        ),
+        content: const Text(
+          'هل تريد طباعة الفاتورة الآن؟',
+          style: TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx); // أغلق الدياlog
+              Navigator.pop(context); // ارجع للصفحة السابقة
+            },
+            child: const Text('لا، شكراً'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx); // أغلق الـ dialog
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) =>
+                      PurchaseInvoicePrintWidget(invoice: _savedInvoice!),
+                ),
+              ).then((_) => Navigator.pop(context)); // بعد الطباعة ارجع
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+            child: const Text('نعم، اطبع'),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showError(String message) {
@@ -123,14 +157,9 @@ class _PurchaseInvoiceScreenState extends State<PurchaseInvoiceScreen> {
           ),
         ),
         centerTitle: true,
-        leading:  IconButton(
-          icon: const Icon(
-            Icons.arrow_back,
-            color: Colors.white,
-          ),
-          onPressed: () {
-            Navigator.pop(context);
-          },
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
         ),
       ),
       body: BlocConsumer<PurchaseInvoiceCubit, PurchaseInvoiceState>(
@@ -143,7 +172,9 @@ class _PurchaseInvoiceScreenState extends State<PurchaseInvoiceScreen> {
               ),
             );
             context.read<ProductCubit>().fetchProducts();
-            Navigator.pop(context);
+
+            // 🔥 اسأل المستخدم: هل يريد الطباعة؟
+            _showPrintDialog();
           } else if (state is PurchaseInvoiceError) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -153,6 +184,7 @@ class _PurchaseInvoiceScreenState extends State<PurchaseInvoiceScreen> {
             );
           }
         },
+
         builder: (context, state) {
           final isLoading = state is PurchaseInvoiceLoading;
 
@@ -180,20 +212,13 @@ class _PurchaseInvoiceScreenState extends State<PurchaseInvoiceScreen> {
                       PurchaseHeaderWidget(
                         selectedSupplier: selectedSupplier,
                         selectedSupplierId: selectedSupplierId,
-                        paymentType: paymentType,
                         invoiceDate: invoiceDate,
                         onSupplierChanged: (value) {
-                          setState(() {
-                            selectedSupplier = value;
-                          });
+                          setState(() => selectedSupplier = value);
                         },
                         onSupplierIdChanged: (value) {
-                          setState(() {
-                            selectedSupplierId = value;
-                          });
+                          setState(() => selectedSupplierId = value);
                         },
-                        onPaymentChanged: (value) =>
-                            setState(() => paymentType = value),
                         onDateChanged: (value) =>
                             setState(() => invoiceDate = value),
                       ),

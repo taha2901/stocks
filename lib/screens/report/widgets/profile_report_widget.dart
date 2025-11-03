@@ -2,8 +2,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:management_stock/core/constants/app_constants.dart';
-import 'package:management_stock/screens/report/states_grid.dart';
-import 'package:management_stock/screens/report/top_profit_product_table.dart';
+import 'package:management_stock/screens/report/widgets/states_grid.dart';
+import 'package:management_stock/screens/report/widgets/top_profit_product_table.dart';
 
 class ProfitReportWidget extends StatelessWidget {
   final Map<String, dynamic> data;

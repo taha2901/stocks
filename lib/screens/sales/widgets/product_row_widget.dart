@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:management_stock/core/widgets/custom_text_field.dart';
 import 'package:management_stock/models/product.dart';
-import 'package:management_stock/models/sales_invoice_item.dart';
-import 'package:management_stock/models/sales_invoice_model.dart';
+import 'package:management_stock/models/sales/sales_invoice_item.dart';
+import 'package:management_stock/models/sales/sales_invoice_model.dart';
 class ProductRowWidget extends StatefulWidget {
   final SalesInvoiceItem item;
   final int index;

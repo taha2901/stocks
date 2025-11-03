@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:management_stock/models/sales_invoice_item.dart';
+import 'package:management_stock/models/sales/sales_invoice_item.dart';
 import 'package:uuid/uuid.dart';
 
 class SalesInvoiceModel {

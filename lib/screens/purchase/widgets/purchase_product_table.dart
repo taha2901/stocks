@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:management_stock/core/widgets/custom_text_field.dart';
 import 'package:management_stock/core/widgets/custom_button.dart';
-import 'package:management_stock/models/purchase_invoice_item.dart';
+import 'package:management_stock/models/purchase/purchase_invoice_item.dart';
 
 class PurchaseProductsTable extends StatelessWidget {
   final List<PurchaseInvoiceItem> invoiceItems;

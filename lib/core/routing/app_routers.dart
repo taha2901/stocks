@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:management_stock/core/routing/routers.dart';
 import 'package:management_stock/models/customer.dart';
-import 'package:management_stock/models/sales_invoice_model.dart';
+import 'package:management_stock/models/sales/sales_invoice_model.dart';
 import 'package:management_stock/screens/customers/add_new_customer.dart';
 import 'package:management_stock/screens/customers/customers_screen.dart';
 import 'package:management_stock/screens/customers/edit_customer_screen.dart';

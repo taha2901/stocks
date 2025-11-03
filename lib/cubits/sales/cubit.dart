@@ -1,7 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:management_stock/core/services/sales_invoice_services.dart';
 import 'package:management_stock/cubits/sales/states.dart';
-import 'package:management_stock/models/sales_invoice_model.dart';
+import 'package:management_stock/models/sales/sales_invoice_model.dart';
 
 class SalesInvoiceCubit extends Cubit<SalesInvoiceState> {
   final SalesInvoiceServices _services;

@@ -7,28 +7,23 @@ import 'package:management_stock/cubits/suppliers/states.dart';
 class PurchaseHeaderWidget extends StatelessWidget {
   final String? selectedSupplier;
   final String? selectedSupplierId;
-  final String? paymentType;
   final DateTime? invoiceDate;
   final ValueChanged<String?> onSupplierChanged;
   final ValueChanged<String?> onSupplierIdChanged;
-  final ValueChanged<String?> onPaymentChanged;
   final ValueChanged<DateTime?> onDateChanged;
 
   const PurchaseHeaderWidget({
     super.key,
     required this.selectedSupplier,
     required this.selectedSupplierId,
-    required this.paymentType,
     required this.invoiceDate,
     required this.onSupplierChanged,
     required this.onSupplierIdChanged,
-    required this.onPaymentChanged,
     required this.onDateChanged,
   });
 
   @override
   Widget build(BuildContext context) {
-    // final paymentMethods = ['كاش', 'آجل'];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

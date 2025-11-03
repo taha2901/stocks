@@ -1,4 +1,4 @@
-import 'package:management_stock/models/pos_sales_model.dart';
+import 'package:management_stock/models/pos/pos_sales_model.dart';
 
 abstract class POSSaleState {}
 

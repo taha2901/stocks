@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:management_stock/models/pos_sales_model.dart';
+import 'package:management_stock/models/pos/pos_sales_model.dart';
 
 class SalesHistoryItem extends StatelessWidget {
   final POSSaleModel sale;

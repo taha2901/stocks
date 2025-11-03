@@ -1,4 +1,4 @@
-import 'package:management_stock/models/sales_invoice_model.dart';
+import 'package:management_stock/models/sales/sales_invoice_model.dart';
 
 abstract class SalesInvoiceState {}
 
