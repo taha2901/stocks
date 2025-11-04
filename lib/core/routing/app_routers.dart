@@ -1,7 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:management_stock/core/routing/routers.dart';
+import 'package:management_stock/core/services/purchase_invoice_service.dart';
+import 'package:management_stock/core/services/sales_invoice_services.dart';
+import 'package:management_stock/cubits/backup/cubit.dart';
+import 'package:management_stock/cubits/purchase/cubit.dart';
+import 'package:management_stock/cubits/sales/cubit.dart';
 import 'package:management_stock/models/customer.dart';
 import 'package:management_stock/models/sales/sales_invoice_model.dart';
+import 'package:management_stock/screens/backup/backuo_screen.dart';
 import 'package:management_stock/screens/customers/add_new_customer.dart';
 import 'package:management_stock/screens/customers/customers_screen.dart';
 import 'package:management_stock/screens/customers/edit_customer_screen.dart';
@@ -12,9 +19,11 @@ import 'package:management_stock/screens/login/register.dart';
 import 'package:management_stock/screens/products/add_product_page.dart';
 import 'package:management_stock/screens/products/products_screen.dart';
 import 'package:management_stock/screens/purchase/purchase_invoice_screen.dart';
+import 'package:management_stock/screens/purchase/purchase_list.dart';
 import 'package:management_stock/screens/quick_sale/quick_sales_screen.dart';
 import 'package:management_stock/screens/report/report_screen.dart';
 import 'package:management_stock/screens/sales/sales_invoice_screen.dart';
+import 'package:management_stock/screens/sales/sales_list.dart';
 import 'package:management_stock/screens/suppliers/suppliers_screen.dart';
 
 class AppRouter {
@@ -69,6 +78,14 @@ class AppRouter {
           builder: (_) => const PurchaseInvoiceScreen(),
           settings: settings,
         );
+      case Routers.purchaseInvoicesList:
+        return MaterialPageRoute(
+          builder: (_) => BlocProvider(
+            create: (_) => PurchaseInvoiceCubit(PurchaseInvoiceServicesImpl()),
+            child: const PurchaseInvoicesListScreen(),
+          ),
+        );
+
       case Routers.salesInvoiceRoute:
         final invoice =
             settings.arguments as SalesInvoiceModel? ?? SalesInvoiceModel();
@@ -76,6 +93,14 @@ class AppRouter {
           builder: (_) => SalesInvoiceScreen(invoice: invoice),
           settings: settings,
         );
+      case Routers.salesInvoicesList:
+        return MaterialPageRoute(
+          builder: (_) => BlocProvider(
+            create: (_) => SalesInvoiceCubit(SalesInvoiceServicesImpl()),
+            child: const SalesInvoicesListScreen(),
+          ),
+        );
+
       case Routers.quickSaleRoute:
         return MaterialPageRoute(
           builder: (_) => const QuickSaleScreen(),
@@ -91,6 +116,14 @@ class AppRouter {
           builder: (_) => const ReportsScreen(),
           settings: settings,
         );
+      case Routers.backup:
+        return MaterialPageRoute(
+          builder: (_) => BlocProvider(
+            create: (_) => BackupCubit(),
+            child: const BackupScreen(),
+          ),
+        );
+
       default:
         return MaterialPageRoute(
           builder: (_) => Scaffold(

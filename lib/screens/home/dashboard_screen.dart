@@ -33,9 +33,19 @@ class DashboardScreen extends StatelessWidget {
         "route": Routers.purchaseInvoiceRoute,
       },
       {
+        "title": 'فواتير الشراء',
+        "icon": Icons.receipt_long,
+        "route": Routers.purchaseInvoicesList,
+      },
+      {
         "title": "إنشاء فاتورة بيع",
         "icon": Icons.point_of_sale_outlined,
         "route": Routers.salesInvoiceRoute,
+      },
+      {
+        "title": 'فواتير البيع',
+        "icon": Icons.point_of_sale,
+        "route": Routers.salesInvoicesList,
       },
       {
         "title": "البيع السريع (POS)",
@@ -52,6 +62,11 @@ class DashboardScreen extends StatelessWidget {
         "icon": Icons.show_chart_outlined,
         "route": Routers.reportRoute, 
       },
+      {
+        "title": 'النسخ الاحتياطي',
+        "icon": Icons.backup,
+        "route": Routers.backup, 
+      }
     ];
 
     return Scaffold(

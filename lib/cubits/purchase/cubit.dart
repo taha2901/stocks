@@ -33,6 +33,8 @@ class PurchaseInvoiceCubit extends Cubit<PurchaseInvoiceState> {
     }
   }
 
+  
+
   Future<PurchaseInvoiceModel?> getInvoiceById(String id) async {
     try {
       return await _services.getPurchaseInvoiceById(id);

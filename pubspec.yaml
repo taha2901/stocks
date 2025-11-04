@@ -10,6 +10,7 @@ dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.8
+  file_picker: ^10.3.3
   cloud_firestore: ^6.0.3
   image_picker: ^1.2.0
   firebase_storage: ^13.0.3
@@ -23,6 +24,7 @@ dependencies:
   path_provider: ^2.1.5
   pdf: ^3.11.3
   open_file: ^3.5.10
+  permission_handler: ^12.0.1
 
 dev_dependencies:
   flutter_test:
