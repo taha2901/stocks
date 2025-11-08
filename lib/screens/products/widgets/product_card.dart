@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:management_stock/cubits/products/cubit.dart';
 import 'package:management_stock/models/product.dart';
 import 'package:management_stock/screens/products/widgets/product_action.dart';
-import 'package:management_stock/screens/products/widgets/product_image.dart';
 import 'package:management_stock/screens/products/widgets/product_info_column.dart';
 
 class ProductCard extends StatelessWidget {
@@ -29,7 +28,7 @@ class ProductCard extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ProductImage(url: product.image),
+          // ProductImage(url: product.image),
           const SizedBox(width: 16),
           Expanded(
             child: ProductInfoColumn(product: product),

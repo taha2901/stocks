@@ -41,7 +41,7 @@ class POSSaleModel {
             id: i['productId'] ?? '',
             name: i['name'] ?? '',
             category: '',
-            image: '',
+            // image: '',
             purchasePrice: 0,
             sellPrice: (i['price'] ?? 0).toDouble(),
             pointPrice: 0,

@@ -32,21 +32,21 @@ class DashboardScreen extends StatelessWidget {
         "icon": Icons.receipt_long_outlined,
         "route": Routers.purchaseInvoiceRoute,
       },
-      {
-        "title": 'فواتير الشراء',
-        "icon": Icons.receipt_long,
-        "route": Routers.purchaseInvoicesList,
-      },
+      // {
+      //   "title": 'فواتير الشراء',
+      //   "icon": Icons.receipt_long,
+      //   "route": Routers.purchaseInvoicesList,
+      // },
       {
         "title": "إنشاء فاتورة بيع",
         "icon": Icons.point_of_sale_outlined,
         "route": Routers.salesInvoiceRoute,
       },
-      {
-        "title": 'فواتير البيع',
-        "icon": Icons.point_of_sale,
-        "route": Routers.salesInvoicesList,
-      },
+      // {
+      //   "title": 'فواتير البيع',
+      //   "icon": Icons.point_of_sale,
+      //   "route": Routers.salesInvoicesList,
+      // },
       {
         "title": "البيع السريع (POS)",
         "icon": Icons.qr_code_scanner_outlined,
@@ -60,45 +60,17 @@ class DashboardScreen extends StatelessWidget {
       {
         "title": "تقارير المبيعات",
         "icon": Icons.show_chart_outlined,
-        "route": Routers.reportRoute, 
+        "route": Routers.reportRoute,
       },
-      {
-        "title": 'النسخ الاحتياطي',
-        "icon": Icons.backup,
-        "route": Routers.backup, 
-      }
+      // {
+      //   "title": 'النسخ الاحتياطي',
+      //   "icon": Icons.backup,
+      //   "route": Routers.backup,
+      // },
     ];
 
     return Scaffold(
-      appBar: AppBar(
-        elevation: 4,
-        title: Text(
-          "taha@se.co (admin)",
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: Responsive.fontSize(context, 18),
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Row(
-              children: [
-                Text(
-                  "أهلاً، الأسطورة",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: Responsive.fontSize(context, 16),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                const Icon(Icons.person, color: Colors.white),
-              ],
-            ),
-          ),
-        ],
-      ),
+      appBar: AppBar(elevation: 4),
       body: Padding(
         padding: padding,
         child: Column(
@@ -119,7 +91,10 @@ class DashboardScreen extends StatelessWidget {
   }
 
   // 🔹 ListView للموبايل
-  Widget _buildMobileList(List<Map<String, dynamic>> items, BuildContext context) {
+  Widget _buildMobileList(
+    List<Map<String, dynamic>> items,
+    BuildContext context,
+  ) {
     return ListView.separated(
       itemCount: items.length,
       separatorBuilder: (_, __) => const SizedBox(height: 16),

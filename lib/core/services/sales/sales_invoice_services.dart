@@ -1,6 +1,6 @@
 import 'package:management_stock/core/helper/api_paths.dart';
 import 'package:management_stock/core/helper/firestore_services.dart';
-import 'package:management_stock/core/services/product_service.dart';
+import 'package:management_stock/core/services/products/product_service.dart';
 import 'package:management_stock/models/sales/sales_invoice_model.dart';
 import 'package:management_stock/models/product.dart';
 
@@ -48,7 +48,6 @@ class SalesInvoiceServicesImpl implements SalesInvoiceServices {
         id: existingProduct.id,
         name: existingProduct.name,
         category: existingProduct.category,
-        image: existingProduct.image,
         purchasePrice: existingProduct.purchasePrice,
         sellPrice: item.sellPrice, // تحديث سعر البيع
         pointPrice: existingProduct.pointPrice,

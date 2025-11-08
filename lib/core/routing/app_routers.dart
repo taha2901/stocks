@@ -1,17 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:management_stock/core/routing/routers.dart';
-import 'package:management_stock/core/services/purchase_invoice_service.dart';
-import 'package:management_stock/core/services/sales_invoice_services.dart';
 import 'package:management_stock/cubits/backup/cubit.dart';
-import 'package:management_stock/cubits/purchase/cubit.dart';
-import 'package:management_stock/cubits/sales/cubit.dart';
-import 'package:management_stock/models/customer.dart';
 import 'package:management_stock/models/sales/sales_invoice_model.dart';
 import 'package:management_stock/screens/backup/backuo_screen.dart';
 import 'package:management_stock/screens/customers/add_new_customer.dart';
 import 'package:management_stock/screens/customers/customers_screen.dart';
-import 'package:management_stock/screens/customers/edit_customer_screen.dart';
 import 'package:management_stock/screens/deffered/deffered_payments.dart';
 import 'package:management_stock/screens/home/dashboard_screen.dart';
 import 'package:management_stock/screens/login/login_screen.dart';
@@ -47,12 +41,6 @@ class AppRouter {
           builder: (_) => const AddCustomerScreen(),
           settings: settings,
         );
-      case Routers.editCustomerRoute:
-        final customer = settings.arguments as Customer;
-        return MaterialPageRoute(
-          builder: (_) => EditCustomerScreen(customer: customer),
-        );
-
       case Routers.productRoute:
         return MaterialPageRoute(
           builder: (_) => const ProductsScreen(),
@@ -80,10 +68,7 @@ class AppRouter {
         );
       case Routers.purchaseInvoicesList:
         return MaterialPageRoute(
-          builder: (_) => BlocProvider(
-            create: (_) => PurchaseInvoiceCubit(PurchaseInvoiceServicesImpl()),
-            child: const PurchaseInvoicesListScreen(),
-          ),
+          builder: (_) => const PurchaseInvoicesListScreen(),
         );
 
       case Routers.salesInvoiceRoute:
@@ -95,10 +80,7 @@ class AppRouter {
         );
       case Routers.salesInvoicesList:
         return MaterialPageRoute(
-          builder: (_) => BlocProvider(
-            create: (_) => SalesInvoiceCubit(SalesInvoiceServicesImpl()),
-            child: const SalesInvoicesListScreen(),
-          ),
+          builder: (_) => const SalesInvoicesListScreen(),
         );
 
       case Routers.quickSaleRoute:

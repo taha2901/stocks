@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:management_stock/core/helper/api_paths.dart';
 import 'package:management_stock/core/helper/firestore_services.dart';
-import 'package:management_stock/core/services/auth_service.dart';
+import 'package:management_stock/core/services/auth/auth_service.dart';
 import 'package:management_stock/cubits/auth/states.dart';
 
 

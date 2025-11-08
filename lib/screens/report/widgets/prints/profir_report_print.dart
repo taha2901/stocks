@@ -25,142 +25,25 @@ class ProfitReportPrintWidget extends StatelessWidget {
         backgroundColor: const Color(0xFF2C2F48),
         title: const Text('طباعة تقرير الأرباح 🖨️'),
         actions: [
-          IconButton(icon: const Icon(Icons.print), onPressed: () => _handlePrint()),
-          IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(context)),
+          IconButton(
+            icon: const Icon(Icons.print),
+            onPressed: () => _handlePrint(),
+          ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 800),
-            child: _buildReportContent(),
+      body: Center(
+        child: ElevatedButton.icon(
+          onPressed: () => _handlePrint(),
+          icon: const Icon(Icons.print),
+          label: const Text('طباعة التقرير'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.green,
+            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
           ),
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _handlePrint(),
-        label: const Text('طباعة'),
-        icon: const Icon(Icons.print),
-        backgroundColor: Colors.green,
-      ),
     );
   }
-
-  Widget _buildReportContent() {
-    final currencyFormat = NumberFormat.currency(symbol: 'ج.م', decimalDigits: 2);
-    
-    final totalRevenue = (data['totalRevenue'] ?? 0).toDouble();
-    final totalCost = (data['totalCost'] ?? 0).toDouble();
-    final grossProfit = (data['grossProfit'] ?? 0).toDouble();
-    final profitMargin = (data['profitMargin'] ?? 0).toDouble();
-    
-    // 🔥 البيانات بتيجي List<MapEntry> - key: اسم المنتج, value: الربح
-    final topProfitData = data['topProfitProducts'];
-    final topProfitProducts = (topProfitData is List) ? topProfitData.cast<MapEntry>() : <MapEntry>[];
-
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(color: Colors.grey[300]!),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      padding: const EdgeInsets.all(32),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Center(
-            child: Column(
-              children: [
-                const Text('تقرير الأرباح 💰', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.black87)),
-                const SizedBox(height: 8),
-                Text('الفترة: $period', style: const TextStyle(fontSize: 16, color: Colors.grey)),
-                if (startDate != null && endDate != null)
-                  Text(
-                    '${DateFormat('yyyy/MM/dd').format(startDate!)} - ${DateFormat('yyyy/MM/dd').format(endDate!)}',
-                    style: const TextStyle(fontSize: 14, color: Colors.grey),
-                  ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 32),
-          _buildStatRow('إجمالي الإيرادات', currencyFormat.format(totalRevenue), Colors.green),
-          const Divider(),
-          _buildStatRow('إجمالي التكاليف', currencyFormat.format(totalCost), Colors.red),
-          const Divider(thickness: 2),
-          _buildStatRow('صافي الربح', currencyFormat.format(grossProfit), Colors.blue),
-          const Divider(),
-          _buildStatRow('هامش الربح', '${(profitMargin * 100).toStringAsFixed(1)}%', Colors.orange),
-          const SizedBox(height: 32),
-          const Text('أعلى المنتجات ربحاً:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87)),
-          const SizedBox(height: 16),
-          _buildTopProfitProductsTable(topProfitProducts, currencyFormat),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatRow(String label, String value, Color color) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(value, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: color)),
-          Text(label, style: const TextStyle(fontSize: 16, color: Colors.black54, fontWeight: FontWeight.w600)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTopProfitProductsTable(List<MapEntry> products, NumberFormat currencyFormat) {
-    if (products.isEmpty) {
-      return const Center(
-        child: Padding(
-          padding: EdgeInsets.all(24.0),
-          child: Text('لا توجد منتجات', style: TextStyle(color: Colors.grey, fontSize: 16)),
-        ),
-      );
-    }
-
-    return Table(
-      border: TableBorder.all(color: Colors.grey[300]!),
-      columnWidths: const {
-        0: FlexColumnWidth(4),
-        1: FlexColumnWidth(2),
-      },
-      children: [
-        TableRow(
-          decoration: BoxDecoration(color: Colors.grey[200]),
-          children: [
-            _tableHeaderCell('المنتج'),
-            _tableHeaderCell('الربح'),
-          ],
-        ),
-        ...products.take(10).map((product) {
-          final productName = product.key?.toString() ?? 'غير محدد';
-          final profit = (product.value ?? 0).toDouble();
-          
-          return TableRow(
-            children: [
-              _tableCell(productName),
-              _tableCell(currencyFormat.format(profit)),
-            ],
-          );
-        }),
-      ],
-    );
-  }
-
-  Widget _tableHeaderCell(String text) => Padding(
-    padding: const EdgeInsets.all(12),
-    child: Text(text, textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-  );
-  
-  Widget _tableCell(String text) => Padding(
-    padding: const EdgeInsets.all(12),
-    child: Text(text, textAlign: TextAlign.center, style: const TextStyle(fontSize: 13)),
-  );
 
   Future<void> _handlePrint() async {
     final pdf = pw.Document();
@@ -172,10 +55,17 @@ class ProfitReportPrintWidget extends StatelessWidget {
     final profitMargin = (data['profitMargin'] ?? 0).toDouble();
     
     final topProfitData = data['topProfitProducts'];
-    final topProfitProducts = (topProfitData is List) ? topProfitData.cast<MapEntry>() : <MapEntry>[];
+    final topProfitProducts = (topProfitData is List) 
+        ? topProfitData.cast<MapEntry>() 
+        : <MapEntry>[];
 
     pdf.addPage(
       pw.Page(
+        pageFormat: PdfPageFormat(
+          80 * PdfPageFormat.mm,
+          double.infinity,
+          marginAll: 5 * PdfPageFormat.mm,
+        ),
         textDirection: pw.TextDirection.rtl,
         theme: pw.ThemeData.withFont(
           base: await PdfGoogleFonts.cairoRegular(),
@@ -183,84 +73,133 @@ class ProfitReportPrintWidget extends StatelessWidget {
         ),
         build: (pw.Context context) {
           return pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            crossAxisAlignment: pw.CrossAxisAlignment.stretch,
             children: [
               pw.Center(
-                child: pw.Column(
-                  children: [
-                    pw.Text('تقرير الأرباح', style: pw.TextStyle(fontSize: 28, fontWeight: pw.FontWeight.bold)),
-                    pw.SizedBox(height: 8),
-                    pw.Text('الفترة: $period'),
-                    if (startDate != null && endDate != null)
-                      pw.Text('${DateFormat('yyyy/MM/dd').format(startDate!)} - ${DateFormat('yyyy/MM/dd').format(endDate!)}'),
-                  ],
+                child: pw.Text(
+                  'تقرير الأرباح',
+                  style: pw.TextStyle(
+                    fontSize: 14,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
                 ),
               ),
-              pw.SizedBox(height: 24),
-              _pdfStatRow('إجمالي الإيرادات', currencyFormat.format(totalRevenue)),
-              pw.Divider(),
-              _pdfStatRow('إجمالي التكاليف', currencyFormat.format(totalCost)),
-              pw.Divider(thickness: 2),
-              _pdfStatRow('صافي الربح', currencyFormat.format(grossProfit)),
-              pw.Divider(),
-              _pdfStatRow('هامش الربح', '${(profitMargin * 100).toStringAsFixed(1)}%'),
-              pw.SizedBox(height: 24),
-              pw.Text('أعلى المنتجات ربحاً:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 16)),
-              pw.SizedBox(height: 16),
+              pw.SizedBox(height: 2),
+              pw.Divider(thickness: 1),
+              pw.SizedBox(height: 4),
+              
+              pw.Center(
+                child: pw.Text(
+                  'الفترة: $period',
+                  style: const pw.TextStyle(fontSize: 9),
+                ),
+              ),
+              if (startDate != null && endDate != null)
+                pw.Center(
+                  child: pw.Text(
+                    '${DateFormat('yyyy/MM/dd').format(startDate!)} - ${DateFormat('yyyy/MM/dd').format(endDate!)}',
+                    style: const pw.TextStyle(fontSize: 8),
+                  ),
+                ),
+              
+              pw.SizedBox(height: 4),
+              pw.Divider(thickness: 1),
+              pw.SizedBox(height: 4),
+              
+              _pdfRow('الإيرادات:', currencyFormat.format(totalRevenue)),
+              _pdfRow('التكاليف:', currencyFormat.format(totalCost)),
+              pw.Divider(thickness: 1.5),
+              _pdfRow('صافي الربح:', currencyFormat.format(grossProfit)),
+              _pdfRow('هامش الربح:', '${profitMargin.toStringAsFixed(1)}%'),
+              
+              pw.SizedBox(height: 4),
+              pw.Divider(thickness: 1),
+              pw.SizedBox(height: 4),
+              
+              pw.Text(
+                'أعلى المنتجات ربحاً:',
+                style: pw.TextStyle(
+                  fontSize: 10,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
+              pw.SizedBox(height: 4),
+              
               if (topProfitProducts.isNotEmpty)
-                pw.Table(
-                  border: pw.TableBorder.all(),
-                  children: [
-                    pw.TableRow(
-                      decoration: const pw.BoxDecoration(color: PdfColors.grey300),
+                ...topProfitProducts.take(5).map((product) {
+                  final name = product.key?.toString() ?? 'غير محدد';
+                  final profit = (product.value ?? 0).toDouble();
+                  
+                  return pw.Container(
+                    margin: const pw.EdgeInsets.only(bottom: 3),
+                    child: pw.Row(
+                      mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                       children: [
-                        _pdfTableCell('المنتج', bold: true),
-                        _pdfTableCell('الربح', bold: true),
+                        pw.Expanded(
+                          child: pw.Text(
+                            name,
+                            style: const pw.TextStyle(fontSize: 9),
+                          ),
+                        ),
+                        pw.Text(
+                          currencyFormat.format(profit),
+                          style: pw.TextStyle(
+                            fontSize: 9,
+                            fontWeight: pw.FontWeight.bold,
+                          ),
+                        ),
                       ],
                     ),
-                    ...topProfitProducts.take(10).map((product) {
-                      final productName = product.key?.toString() ?? 'غير محدد';
-                      final profit = (product.value ?? 0).toDouble();
-                      
-                      return pw.TableRow(
-                        children: [
-                          _pdfTableCell(productName),
-                          _pdfTableCell(currencyFormat.format(profit)),
-                        ],
-                      );
-                    }),
-                  ],
-                )
+                  );
+                })
               else
-                pw.Center(child: pw.Text('لا توجد منتجات')),
+                pw.Center(
+                  child: pw.Text(
+                    'لا توجد منتجات',
+                    style: const pw.TextStyle(fontSize: 8),
+                  ),
+                ),
+              
+              pw.SizedBox(height: 6),
+              pw.Divider(thickness: 1),
+              pw.SizedBox(height: 2),
+              
+              pw.Center(
+                child: pw.Text(
+                  DateFormat('yyyy/MM/dd - hh:mm a').format(DateTime.now()),
+                  style: const pw.TextStyle(fontSize: 7),
+                ),
+              ),
             ],
           );
         },
       ),
     );
 
-    await Printing.layoutPdf(onLayout: (PdfPageFormat format) async => pdf.save());
+    await Printing.layoutPdf(
+      onLayout: (PdfPageFormat format) async => pdf.save(),
+    );
   }
 
-  pw.Widget _pdfStatRow(String label, String value) {
+  pw.Widget _pdfRow(String label, String value) {
     return pw.Padding(
-      padding: const pw.EdgeInsets.symmetric(vertical: 8),
+      padding: const pw.EdgeInsets.symmetric(vertical: 2),
       child: pw.Row(
         mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
         children: [
-          pw.Text(value, style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-          pw.Text(label, style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+          pw.Text(
+            value,
+            style: pw.TextStyle(
+              fontSize: 9,
+              fontWeight: pw.FontWeight.bold,
+            ),
+          ),
+          pw.Text(
+            label,
+            style: const pw.TextStyle(fontSize: 9),
+          ),
         ],
       ),
     );
   }
-
-  pw.Widget _pdfTableCell(String text, {bool bold = false}) => pw.Padding(
-    padding: const pw.EdgeInsets.all(8),
-    child: pw.Text(
-      text,
-      textAlign: pw.TextAlign.center,
-      style: pw.TextStyle(fontWeight: bold ? pw.FontWeight.bold : pw.FontWeight.normal),
-    ),
-  );
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:management_stock/models/product.dart';
 import 'package:printing/printing.dart';
 import 'package:pdf/pdf.dart';
@@ -13,126 +14,207 @@ class InventoryPrintWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: const Color(0xFF2C2F48),
         title: const Text('طباعة المخزون 🖨️'),
         actions: [
-          IconButton(icon: const Icon(Icons.print), onPressed: () => _handlePrint()),
-          IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(context)),
+          IconButton(
+            icon: const Icon(Icons.print),
+            onPressed: () => _handlePrint(),
+          ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 800),
-            child: _buildInventoryContent(),
+      body: Center(
+        child: ElevatedButton.icon(
+          onPressed: () => _handlePrint(),
+          icon: const Icon(Icons.print),
+          label: const Text('طباعة المخزون'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.green,
+            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
           ),
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _handlePrint(),
-        label: const Text('طباعة'),
-        icon: const Icon(Icons.print),
-      ),
     );
   }
-
-  Widget _buildInventoryContent() {
-    return Container(
-      decoration: BoxDecoration(color: Colors.white, border: Border.all(color: Colors.grey[300]!), borderRadius: BorderRadius.circular(8)),
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Center(child: const Text('تقرير المخزون', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.black87))),
-          const SizedBox(height: 8),
-          Center(child: Text('${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}', style: const TextStyle(fontSize: 14, color: Colors.grey))),
-          const SizedBox(height: 24),
-          _buildInventoryTable(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInventoryTable() {
-    return Table(
-      border: TableBorder.all(color: Colors.grey[300]!),
-      columnWidths: const {
-        0: FlexColumnWidth(3),
-        1: FlexColumnWidth(2),
-        2: FlexColumnWidth(1.5),
-        3: FlexColumnWidth(2),
-      },
-      children: [
-        TableRow(
-          decoration: BoxDecoration(color: Colors.grey[200]),
-          children: [
-            _tableHeaderCell('المنتج'),
-            _tableHeaderCell('الباركود'),
-            _tableHeaderCell('الكمية'),
-            _tableHeaderCell('سعر البيع'),
-          ],
-        ),
-        ...products.map((product) {
-          return TableRow(
-            children: [
-              _tableCell(product.name),
-              _tableCell(product.barcode),
-              _tableCell('${product.quantity}'),
-              _tableCell('${product.sellPrice.toStringAsFixed(2)} ج.م'),
-            ],
-          );
-        }),
-      ],
-    );
-  }
-
-  Widget _tableHeaderCell(String text) => Padding(padding: const EdgeInsets.all(12), child: Text(text, textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.bold)));
-  Widget _tableCell(String text) => Padding(padding: const EdgeInsets.all(12), child: Text(text, textAlign: TextAlign.center));
 
   Future<void> _handlePrint() async {
     final pdf = pw.Document();
+    final currencyFormat = NumberFormat.currency(symbol: 'ج.م', decimalDigits: 2);
+
     pdf.addPage(
       pw.Page(
+        // ✅ حجم ورق الفاتورة (80mm)
+        pageFormat: PdfPageFormat(
+          80 * PdfPageFormat.mm,
+          double.infinity,
+          marginAll: 5 * PdfPageFormat.mm,
+        ),
         textDirection: pw.TextDirection.rtl,
-        theme: pw.ThemeData.withFont(base: await PdfGoogleFonts.cairoRegular(), bold: await PdfGoogleFonts.cairoBold()),
+        theme: pw.ThemeData.withFont(
+          base: await PdfGoogleFonts.cairoRegular(),
+          bold: await PdfGoogleFonts.cairoBold(),
+        ),
         build: (pw.Context context) {
           return pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.stretch,
             children: [
-              pw.Text('تقرير المخزون', style: pw.TextStyle(fontSize: 28, fontWeight: pw.FontWeight.bold)),
-              pw.SizedBox(height: 8),
-              pw.Text('${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}'),
-              pw.SizedBox(height: 24),
-              pw.Table(
-                border: pw.TableBorder.all(),
-                children: [
-                  pw.TableRow(
-                    decoration: const pw.BoxDecoration(color: PdfColors.grey300),
+              // ✅ العنوان
+              pw.Center(
+                child: pw.Text(
+                  'تقرير المخزون',
+                  style: pw.TextStyle(
+                    fontSize: 14,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                ),
+              ),
+              pw.SizedBox(height: 2),
+              pw.Center(
+                child: pw.Text(
+                  DateFormat('yyyy/MM/dd').format(DateTime.now()),
+                  style: const pw.TextStyle(fontSize: 8),
+                ),
+              ),
+              pw.SizedBox(height: 4),
+              pw.Divider(thickness: 1),
+              pw.SizedBox(height: 4),
+              
+              // ✅ الإحصائيات
+              _pdfRow('إجمالي المنتجات:', '${products.length}'),
+              _pdfRow(
+                'قيمة المخزون:',
+                currencyFormat.format(
+                  products.fold(0.0, (sum, p) => sum + (p.sellPrice * p.quantity)),
+                ),
+              ),
+              _pdfRow(
+                'قاربت على النفاد:',
+                '${products.where((p) => p.quantity <= 5).length}',
+              ),
+              
+              pw.SizedBox(height: 4),
+              pw.Divider(thickness: 1),
+              pw.SizedBox(height: 4),
+              
+              // ✅ تفاصيل المنتجات
+              pw.Text(
+                'تفاصيل المنتجات:',
+                style: pw.TextStyle(
+                  fontSize: 10,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
+              pw.SizedBox(height: 4),
+              
+              ...products.map((product) {
+                final isLowStock = product.quantity <= 5;
+                return pw.Container(
+                  margin: const pw.EdgeInsets.only(bottom: 3),
+                  decoration: isLowStock
+                      ? const pw.BoxDecoration(
+                          color: PdfColors.red50,
+                        )
+                      : null,
+                  padding: const pw.EdgeInsets.all(2),
+                  child: pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
                     children: [
-                      _pdfTableCell('المنتج', bold: true),
-                      _pdfTableCell('الباركود', bold: true),
-                      _pdfTableCell('الكمية', bold: true),
-                      _pdfTableCell('سعر البيع', bold: true),
+                      // اسم المنتج
+                      pw.Text(
+                        product.name,
+                        style: pw.TextStyle(
+                          fontSize: 9,
+                          fontWeight: pw.FontWeight.bold,
+                        ),
+                      ),
+                      pw.SizedBox(height: 1),
+                      
+                      // الباركود والكمية
+                      pw.Row(
+                        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                        children: [
+                          pw.Text(
+                            'باركود: ${product.barcode}',
+                            style: const pw.TextStyle(fontSize: 7),
+                          ),
+                          pw.Text(
+                            'الكمية: ${product.quantity}${isLowStock ? ' ⚠️' : ''}',
+                            style: pw.TextStyle(
+                              fontSize: 8,
+                              fontWeight: isLowStock 
+                                  ? pw.FontWeight.bold 
+                                  : pw.FontWeight.normal,
+                            ),
+                          ),
+                        ],
+                      ),
+                      pw.SizedBox(height: 1),
+                      
+                      // السعر
+                      pw.Row(
+                        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                        children: [
+                          pw.Text(
+                            'سعر البيع:',
+                            style: const pw.TextStyle(fontSize: 8),
+                          ),
+                          pw.Text(
+                            currencyFormat.format(product.sellPrice),
+                            style: pw.TextStyle(
+                              fontSize: 8,
+                              fontWeight: pw.FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                      pw.SizedBox(height: 2),
+                      pw.Divider(height: 0.5),
                     ],
                   ),
-                  ...products.map((product) {
-                    return pw.TableRow(
-                      children: [
-                        _pdfTableCell(product.name),
-                        _pdfTableCell(product.barcode),
-                        _pdfTableCell('${product.quantity}'),
-                        _pdfTableCell('${product.sellPrice.toStringAsFixed(2)} ج.م'),
-                      ],
-                    );
-                  }),
-                ],
+                );
+              }),
+              
+              pw.SizedBox(height: 6),
+              pw.Divider(thickness: 1),
+              pw.SizedBox(height: 2),
+              
+              // ✅ التاريخ والوقت
+              pw.Center(
+                child: pw.Text(
+                  DateFormat('yyyy/MM/dd - hh:mm a').format(DateTime.now()),
+                  style: const pw.TextStyle(fontSize: 7),
+                ),
               ),
             ],
           );
         },
       ),
     );
-    await Printing.layoutPdf(onLayout: (PdfPageFormat format) async => pdf.save());
+
+    await Printing.layoutPdf(
+      onLayout: (PdfPageFormat format) async => pdf.save(),
+    );
   }
 
-  pw.Widget _pdfTableCell(String text, {bool bold = false}) => pw.Padding(padding: const pw.EdgeInsets.all(8), child: pw.Text(text, textAlign: pw.TextAlign.center, style: pw.TextStyle(fontWeight: bold ? pw.FontWeight.bold : pw.FontWeight.normal)));
+  pw.Widget _pdfRow(String label, String value) {
+    return pw.Padding(
+      padding: const pw.EdgeInsets.symmetric(vertical: 2),
+      child: pw.Row(
+        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+        children: [
+          pw.Text(
+            value,
+            style: pw.TextStyle(
+              fontSize: 9,
+              fontWeight: pw.FontWeight.bold,
+            ),
+          ),
+          pw.Text(
+            label,
+            style: const pw.TextStyle(fontSize: 9),
+          ),
+        ],
+      ),
+    );
+  }
 }

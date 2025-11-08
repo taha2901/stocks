@@ -37,54 +37,5 @@ class SupplierLoaded extends SupplierState {
 
 class SupplierError extends SupplierState {
   final String message;
-
   SupplierError(this.message);
-}
-
-// حالات العمليات
-class SupplierOperationLoading extends SupplierState {}
-
-class SupplierAdded extends SupplierState {
-  final Supplier supplier;
-
-  SupplierAdded(this.supplier);
-}
-
-class SupplierUpdated extends SupplierState {
-  final Supplier supplier;
-
-  SupplierUpdated(this.supplier);
-}
-
-class SupplierDeleted extends SupplierState {
-  final String supplierId;
-
-  SupplierDeleted(this.supplierId);
-}
-
-class SupplierOperationError extends SupplierState {
-  final String message;
-
-  SupplierOperationError(this.message);
-}
-
-// حالات الإحصائيات
-class SupplierStatisticsLoading extends SupplierState {}
-
-class SupplierStatisticsLoaded extends SupplierState {
-  final int totalSuppliers;
-  final int filteredSuppliers;
-  final Map<String, int> cityCount;
-
-  SupplierStatisticsLoaded({
-    required this.totalSuppliers,
-    required this.filteredSuppliers,
-    required this.cityCount,
-  });
-}
-
-class SupplierStatisticsError extends SupplierState {
-  final String message;
-
-  SupplierStatisticsError(this.message);
 }

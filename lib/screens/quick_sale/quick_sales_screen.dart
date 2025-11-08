@@ -313,7 +313,7 @@ void _printSalesHistory() {
         id: '0',
         name: 'غير موجود',
         category: '',
-        image: '',
+        // image: '',
         purchasePrice: 0,
         sellPrice: 0,
         pointPrice: 0,

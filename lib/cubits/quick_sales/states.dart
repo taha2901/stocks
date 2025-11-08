@@ -16,4 +16,3 @@ class POSSaleError extends POSSaleState {
   final String error;
   POSSaleError(this.error);
 }
-

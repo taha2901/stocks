@@ -1,5 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:management_stock/core/services/product_service.dart';
+import 'package:management_stock/core/services/products/product_service.dart';
 import 'package:management_stock/cubits/products/states.dart';
 import 'package:management_stock/models/product.dart';
 

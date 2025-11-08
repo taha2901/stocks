@@ -1,6 +1,6 @@
 import 'package:management_stock/core/helper/api_paths.dart';
 import 'package:management_stock/core/helper/firestore_services.dart';
-import 'package:management_stock/core/services/product_service.dart';
+import 'package:management_stock/core/services/products/product_service.dart';
 import 'package:management_stock/models/product.dart';
 import 'package:management_stock/models/purchase/purchase_invoice_item.dart';
 
@@ -36,7 +36,6 @@ class PurchaseInvoiceServicesImpl implements PurchaseInvoiceServices {
           id: existingProduct.id,
           name: existingProduct.name,
           category: existingProduct.category,
-          image: existingProduct.image,
           purchasePrice: item.buyPrice, // تحديث سعر الشراء
           sellPrice: item.sellPrice, // تحديث سعر البيع
           pointPrice: existingProduct.pointPrice,
@@ -51,7 +50,6 @@ class PurchaseInvoiceServicesImpl implements PurchaseInvoiceServices {
           id: item.product.id,
           name: item.product.name,
           category: item.product.category,
-          image: item.product.image,
           purchasePrice: item.buyPrice,
           sellPrice: item.sellPrice,
           pointPrice: item.sellPrice,

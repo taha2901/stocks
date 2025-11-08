@@ -1,6 +1,6 @@
 import 'package:management_stock/core/helper/api_paths.dart';
 import 'package:management_stock/core/helper/firestore_services.dart';
-import 'package:management_stock/core/services/product_service.dart';
+import 'package:management_stock/core/services/products/product_service.dart';
 import 'package:management_stock/models/pos/pos_sales_model.dart';
 import 'package:management_stock/models/product.dart';
 
@@ -47,7 +47,6 @@ class POSSaleServicesImpl implements POSSaleServices {
         id: existingProduct.id,
         name: existingProduct.name,
         category: existingProduct.category,
-        image: existingProduct.image,
         purchasePrice: existingProduct.purchasePrice,
         sellPrice: existingProduct.sellPrice,
         pointPrice: existingProduct.pointPrice,

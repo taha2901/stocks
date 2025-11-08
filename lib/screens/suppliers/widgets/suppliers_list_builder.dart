@@ -19,65 +19,60 @@ class SuppliersListBuilder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<SupplierCubit, SupplierState>(
+    return BlocListener<SupplierCubit, SupplierState>(
       listener: (context, state) {
-        if (state is SupplierOperationError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message), backgroundColor: Colors.red),
-          );
-        } else if (state is SupplierAdded) {
+        // ✅ فقط للـ Toast والـ Navigation
+        if (state is SupplierLoaded) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('تم إضافة المورد بنجاح'),
+              content: Text('✅ تم العملية بنجاح'),
               backgroundColor: Colors.green,
+              duration: Duration(seconds: 1),
             ),
           );
-        } else if (state is SupplierUpdated) {
+        } else if (state is SupplierError) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('تم تعديل المورد بنجاح'),
-              backgroundColor: Colors.green,
-            ),
-          );
-        } else if (state is SupplierDeleted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('تم حذف المورد بنجاح'),
-              backgroundColor: Colors.green,
+            SnackBar(
+              content: Text(state.message),
+              backgroundColor: Colors.red,
             ),
           );
         }
       },
-      builder: (context, state) {
-        if (state is SupplierLoading) {
-          return const  Center(child: CircularProgressIndicator(color: Colors.blueAccent));
-        }
-
-        if (state is SupplierError) {
-          return SupplierErrorWidget(
-            message: state.message,
-            onRetry: () => context.read<SupplierCubit>().fetchSuppliers(),
-          );
-        }
-
-        if (state is SupplierLoaded) {
-          final suppliers = state.filteredSuppliers;
-
-          if (suppliers.isEmpty) {
-            return SupplierEmptyWidget(
-              hasSearch: state.searchQuery.isNotEmpty,
+      child: BlocBuilder<SupplierCubit, SupplierState>(
+        builder: (context, state) {
+          if (state is SupplierLoading) {
+            return const Center(
+              child: CircularProgressIndicator(color: Colors.blueAccent),
             );
           }
 
-          return SupplierGridView(
-            suppliers: suppliers,
-            onEdit: (supplier) => onEdit(context, supplier),
-            onDelete: (supplier) => onDelete(context, supplier),
-          );
-        }
+          if (state is SupplierError) {
+            return SupplierErrorWidget(
+              message: state.message,
+              onRetry: () => context.read<SupplierCubit>().fetchSuppliers(),
+            );
+          }
 
-        return const Center(child: Text('حالة غير معروفة'));
-      },
+          if (state is SupplierLoaded) {
+            final suppliers = state.filteredSuppliers;
+
+            if (suppliers.isEmpty) {
+              return SupplierEmptyWidget(
+                hasSearch: state.searchQuery.isNotEmpty,
+              );
+            }
+
+            return SupplierGridView(
+              suppliers: suppliers,
+              onEdit: (supplier) => onEdit(context, supplier),
+              onDelete: (supplier) => onDelete(context, supplier),
+            );
+          }
+
+          return const Center(child: Text('حالة غير معروفة'));
+        },
+      ),
     );
   }
 }

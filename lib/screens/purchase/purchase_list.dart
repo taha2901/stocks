@@ -19,11 +19,11 @@ class _PurchaseInvoicesListScreenState extends State<PurchaseInvoicesListScreen>
   List<PurchaseInvoiceModel> filteredInvoices = [];
   List<PurchaseInvoiceModel> allInvoices = [];
 
-  @override
-  void initState() {
-    super.initState();
-    context.read<PurchaseInvoiceCubit>().fetchInvoices();
-  }
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   context.read<PurchaseInvoiceCubit>().fetchInvoices();
+  // }
 
   @override
   void dispose() {

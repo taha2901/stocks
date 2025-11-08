@@ -25,8 +25,6 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
   String? selectedType;
   final List<String> customerTypes = ["قطاعي", "جملة", "آخر"];
 
-  bool _isLoading = false;
-
   @override
   void dispose() {
     nameController.dispose();
@@ -59,38 +57,42 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
   @override
   Widget build(BuildContext context) {
     final padding = Responsive.pagePadding(context);
-    
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text("إضافة عميل", style: TextStyle(color: Colors.white)),
+        title: const Text(
+          "إضافة عميل",
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
         centerTitle: true,
         elevation: 0,
+        backgroundColor: const Color(0xFF2C2F48),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
       ),
+      // ✅ BlocListener للـ Side Effects فقط
       body: BlocListener<CustomerCubit, CustomerState>(
         listener: (context, state) {
-          if (state is CustomerOperationLoading) {
-            setState(() => _isLoading = true);
-          } else {
-            setState(() => _isLoading = false);
-          }
-
-          if (state is CustomerAdded) {
+          // ✅ نجاح الإضافة
+          if (state is CustomerLoaded) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text("✅ تم إضافة العميل بنجاح"),
                 backgroundColor: Colors.green,
+                duration: Duration(seconds: 1),
               ),
             );
-            Navigator.pop(context);
-          } else if (state is CustomerOperationError) {
+            Navigator.pop(context, true);
+          }
+          // ✅ خطأ
+          else if (state is CustomerError) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(state.message),
                 backgroundColor: Colors.red,
+                duration: const Duration(seconds: 2),
               ),
             );
           }
@@ -107,8 +109,8 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
                   child: Column(
                     children: [
                       const SizedBox(height: 20),
-                      
-                      // ✅ استخدام الويدجت المستخرج
+
+                      // ✅ الفورم
                       CustomerFormFields(
                         nameController: nameController,
                         phoneController: phoneController,
@@ -116,47 +118,54 @@ class _AddCustomerScreenState extends State<AddCustomerScreen> {
                         noteController: noteController,
                         selectedType: selectedType,
                         customerTypes: customerTypes,
-                        onTypeSelected: (val) => setState(() => selectedType = val),
+                        onTypeSelected: (val) =>
+                            setState(() => selectedType = val),
                       ),
-                      
+
                       const SizedBox(height: 30),
 
-                      // الأزرار
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _isLoading
-                                ? const Center(
-                                    child: CircularProgressIndicator(
-                                      color: Colors.blueAccent,
-                                    ),
-                                  )
-                                : CustomButton(
-                                    text: "حفظ العميل",
-                                    icon: Icons.save,
-                                    onPressed: saveCustomer,
-                                    backgroundColor: Colors.blueAccent,
-                                    textColor: Colors.white,
-                                    elevation: 3,
-                                    fullWidth: true,
-                                  ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: CustomButton(
-                              text: "رجوع",
-                              icon: Icons.arrow_back,
-                              onPressed: _isLoading
-                                  ? null
-                                  : () => Navigator.pop(context),
-                              isOutlined: true,
-                              borderColor: Colors.grey,
-                              textColor: Colors.grey[300],
-                              fullWidth: true,
-                            ),
-                          ),
-                        ],
+                      // ✅ الأزرار مع Loading
+                      BlocBuilder<CustomerCubit, CustomerState>(
+                        builder: (context, state) {
+                          final isLoading = state is CustomerLoading;
+
+                          return Row(
+                            children: [
+                              Expanded(
+                                child: isLoading
+                                    ? const Center(
+                                        child: CircularProgressIndicator(
+                                          color: Colors.blueAccent,
+                                        ),
+                                      )
+                                    : CustomButton(
+                                        text: "حفظ العميل",
+                                        icon: Icons.save,
+                                        onPressed: saveCustomer,
+                                        backgroundColor: Colors.blueAccent,
+                                        textColor: Colors.white,
+                                        elevation: 3,
+                                        fullWidth: true,
+                                      ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: CustomButton(
+                                  text: "رجوع",
+                                  icon: Icons.arrow_back,
+                                  onPressed:
+                                      isLoading ? null : () => Navigator.pop(context),
+                                  isOutlined: true,
+                                  borderColor: Colors.grey,
+                                  textColor: Colors.grey[300],
+                                  fullWidth: true,
+                                ),
+                              ),
+                            ],
+                          );
+                        },
                       ),
+
                       const SizedBox(height: 30),
                     ],
                   ),

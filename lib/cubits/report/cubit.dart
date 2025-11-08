@@ -1,5 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:management_stock/core/services/report_Services.dart';
+import 'package:management_stock/core/services/reports/report_Services.dart';
 import 'package:management_stock/cubits/report/states.dart';
 
 class ReportsCubit extends Cubit<ReportsState> {

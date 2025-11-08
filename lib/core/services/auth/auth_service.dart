@@ -6,7 +6,6 @@ abstract class AuthServices {
   Future<User?> registerWithEmailAndPassword(String email, String password);
   User? currentUser();
   Future<void> logOut();
-  // Future<bool> signInWithGoogle();
 }
 
 class AuthServicesImpl implements AuthServices {
@@ -27,7 +26,7 @@ class AuthServicesImpl implements AuthServices {
       return userCredential.user;
     } on FirebaseAuthException catch (e) {
       debugPrint("FirebaseAuth Error: ${e.code} - ${e.message}");
-      rethrow; // يترمي لـ cubit يتعامل معاه
+      rethrow; 
     }
   }
 
@@ -45,8 +44,6 @@ class AuthServicesImpl implements AuthServices {
 
   @override
   Future<void> logOut() async {
-    // await GoogleSignIn( ).signOut();
-
     await _firebaseAuth.signOut();
   }
 }

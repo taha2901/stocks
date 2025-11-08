@@ -3,15 +3,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:management_stock/core/routing/app_routers.dart';
 import 'package:management_stock/core/routing/routers.dart';
-import 'package:management_stock/core/services/auth_service.dart';
-import 'package:management_stock/core/services/Customer_services.dart';
-import 'package:management_stock/core/services/deffered_account_services.dart';
-import 'package:management_stock/core/services/pos_sales_services.dart';
-import 'package:management_stock/core/services/product_service.dart';
-import 'package:management_stock/core/services/purchase_invoice_service.dart';
-import 'package:management_stock/core/services/report_Services.dart';
-import 'package:management_stock/core/services/sales_invoice_services.dart';
-import 'package:management_stock/core/services/supplier_services.dart';
+import 'package:management_stock/core/services/auth/auth_service.dart';
+import 'package:management_stock/core/services/customers/customer_services.dart';
+import 'package:management_stock/core/services/deffered/deffered_account_services.dart';
+import 'package:management_stock/core/services/pos/pos_sales_services.dart';
+import 'package:management_stock/core/services/products/product_service.dart';
+import 'package:management_stock/core/services/purchase/purchase_invoice_service.dart';
+import 'package:management_stock/core/services/reports/report_Services.dart';
+import 'package:management_stock/core/services/sales/sales_invoice_services.dart';
+import 'package:management_stock/core/services/suppliers/supplier_services.dart';
 import 'package:management_stock/cubits/auth/cubit.dart';
 import 'package:management_stock/cubits/Customers/cubit.dart';
 import 'package:management_stock/cubits/deffered/cubit.dart';
@@ -34,28 +34,31 @@ void main() async {
           create: (_) => AuthCubit(AuthServicesImpl())..checkAuthState(),
         ),
         BlocProvider(
-          create: (_) => ProductCubit(ProductServicesImpl())..fetchProducts(),
+          create: (_) =>
+              PurchaseInvoiceCubit(PurchaseInvoiceServicesImpl())
+                ..fetchInvoices(),
         ),
         BlocProvider(
-          create: (_) => PurchaseInvoiceCubit(PurchaseInvoiceServicesImpl()),
+          create: (_) => ProductCubit(ProductServicesImpl())..fetchProducts(),
         ),
         BlocProvider(
           create: (_) =>
               SupplierCubit(SupplierServicesImpl())..fetchSuppliers(),
         ),
         BlocProvider(
-          create: (_) => CustomerCubit(CustomerServicesImpl())
-            ..fetchCustomers()
-            ..listenToCustomers(),
+          create: (_) =>
+              CustomerCubit(CustomerServicesImpl())..fetchCustomers(),
         ),
         BlocProvider(
-          create: (_) => SalesInvoiceCubit(SalesInvoiceServicesImpl()),
+          create: (_) => SalesInvoiceCubit(SalesInvoiceServicesImpl())..fetchInvoices(),
         ),
         BlocProvider(
           create: (_) => POSSaleCubit(POSSaleServicesImpl())..fetchSales(),
         ),
         BlocProvider(
-          create: (_) => DeferredAccountCubit(DeferredAccountServicesImpl()),
+          create: (_) =>
+              DeferredAccountCubit(DeferredAccountServicesImpl())
+                ..fetchDeferredAccounts(),
         ),
         BlocProvider(create: (context) => ReportsCubit(ReportsServicesImpl())),
       ],

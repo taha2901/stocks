@@ -2,13 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:management_stock/models/customer.dart';
 class CustomerListView extends StatelessWidget {
   final List<Customer> customers;
-  final Function(Customer) onEdit;
   final Function(Customer) onDelete;
 
   const CustomerListView({
     super.key,
     required this.customers,
-    required this.onEdit,
     required this.onDelete,
   });
 
@@ -89,31 +87,9 @@ class CustomerListView extends StatelessWidget {
                   ),
               ],
             ),
-            trailing: PopupMenuButton(
-              icon: const Icon(Icons.more_vert, color: Colors.white),
-              color: const Color(0xFF2C2F48),
-              itemBuilder: (context) => [
-                PopupMenuItem(
-                  child: Row(
-                    children: const [
-                      Icon(Icons.edit, color: Colors.blueAccent, size: 20),
-                      SizedBox(width: 8),
-                      Text('تعديل', style: TextStyle(color: Colors.white)),
-                    ],
-                  ),
-                  onTap: () => onEdit(c),
-                ),
-                PopupMenuItem(
-                  child: Row(
-                    children: const [
-                      Icon(Icons.delete, color: Colors.red, size: 20),
-                      SizedBox(width: 8),
-                      Text('حذف', style: TextStyle(color: Colors.white)),
-                    ],
-                  ),
-                  onTap: () => onDelete(c),
-                ),
-              ],
+            trailing:  IconButton(
+              icon: const Icon(Icons.delete, color: Colors.red),
+              onPressed: () => onDelete(c),
             ),
             isThreeLine: true,
           ),

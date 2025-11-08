@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:management_stock/core/services/backup_web.dart';
+import 'package:management_stock/core/services/backup/backup_web.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:intl/intl.dart';
@@ -206,59 +206,63 @@ class BackupService {
   // }
 
   // 📤 استعادة collection معين (مع تحويل String إلى Timestamp)
-Future<void> _restoreCollection(String collectionName, List<dynamic> items) async {
-  final batch = _firestore.batch();
+  Future<void> _restoreCollection(
+    String collectionName,
+    List<dynamic> items,
+  ) async {
+    final batch = _firestore.batch();
 
-  for (final item in items) {
-    if (item is Map<String, dynamic> && item.containsKey('id')) {
-      // تحويل التواريخ من String إلى Timestamp
-      final data = _convertStringsToTimestamps(item);
-      
-      final docRef = _firestore.collection(collectionName).doc(item['id']);
-      batch.set(docRef, data);
+    for (final item in items) {
+      if (item is Map<String, dynamic> && item.containsKey('id')) {
+        // تحويل التواريخ من String إلى Timestamp
+        final data = _convertStringsToTimestamps(item);
+
+        final docRef = _firestore.collection(collectionName).doc(item['id']);
+        batch.set(docRef, data);
+      }
     }
+
+    await batch.commit();
   }
 
-  await batch.commit();
-}
+  // 🔄 تحويل String إلى Timestamp
+  Map<String, dynamic> _convertStringsToTimestamps(Map<String, dynamic> data) {
+    final result = <String, dynamic>{};
 
-// 🔄 تحويل String إلى Timestamp
-Map<String, dynamic> _convertStringsToTimestamps(Map<String, dynamic> data) {
-  final result = <String, dynamic>{};
-  
-  data.forEach((key, value) {
-    // قائمة بأسماء الحقول اللي فيها تاريخ
-    final dateFields = [
-      'invoiceDate',
-      'createdAt',
-      'updatedAt',
-      'paymentDate',
-      'dueDate',
-    ];
-    
-    if (value is String && dateFields.contains(key)) {
-      // تحويل String إلى Timestamp
-      try {
-        final dateTime = DateTime.parse(value);
-        result[key] = Timestamp.fromDate(dateTime);
-      } catch (e) {
+    data.forEach((key, value) {
+      // قائمة بأسماء الحقول اللي فيها تاريخ
+      final dateFields = [
+        'invoiceDate',
+        'createdAt',
+        'updatedAt',
+        'paymentDate',
+        'dueDate',
+      ];
+
+      if (value is String && dateFields.contains(key)) {
+        // تحويل String إلى Timestamp
+        try {
+          final dateTime = DateTime.parse(value);
+          result[key] = Timestamp.fromDate(dateTime);
+        } catch (e) {
+          result[key] = value;
+        }
+      } else if (value is Map) {
+        result[key] = _convertStringsToTimestamps(
+          Map<String, dynamic>.from(value),
+        );
+      } else if (value is List) {
+        result[key] = value.map((item) {
+          if (item is Map) {
+            return _convertStringsToTimestamps(Map<String, dynamic>.from(item));
+          }
+          return item;
+        }).toList();
+      } else {
         result[key] = value;
       }
-    } else if (value is Map) {
-      result[key] = _convertStringsToTimestamps(Map<String, dynamic>.from(value));
-    } else if (value is List) {
-      result[key] = value.map((item) {
-        if (item is Map) {
-          return _convertStringsToTimestamps(Map<String, dynamic>.from(item));
-        }
-        return item;
-      }).toList();
-    } else {
-      result[key] = value;
-    }
-  });
-  
-  return result;
-}
+    });
 
+    return result;
+  }
 }

@@ -3,14 +3,14 @@ import 'package:flutter/foundation.dart';
 
 class FirestoreServices {
   // Singleton
-  FirestoreServices._(); //private 
+  FirestoreServices._(); //private
   static final instance = FirestoreServices._();
 
   FirebaseFirestore get firestore => FirebaseFirestore.instance;
 
   // add & update data
   Future<void> setData({
-    required String path, // Collection/$documentId , " oven " 
+    required String path, // Collection/$documentId , " oven "
     required Map<String, dynamic> data,
   }) async {
     final reference = firestore.doc(path);
@@ -18,7 +18,7 @@ class FirestoreServices {
     await reference.set(data);
   }
 
-  Future<void> deleteData({required String path}) async { 
+  Future<void> deleteData({required String path}) async {
     final reference = firestore.doc(path);
     debugPrint('delete: $path');
     await reference.delete();
@@ -37,7 +37,10 @@ class FirestoreServices {
     final snapshots = query.snapshots();
     return snapshots.map((snapshot) {
       final result = snapshot.docs
-          .map((snapshot) => builder(snapshot.data() as Map<String, dynamic>, snapshot.id))
+          .map(
+            (snapshot) =>
+                builder(snapshot.data() as Map<String, dynamic>, snapshot.id),
+          )
           .where((value) => value != null)
           .toList();
       if (sort != null) {
@@ -53,7 +56,10 @@ class FirestoreServices {
   }) {
     final reference = firestore.doc(path);
     final snapshots = reference.snapshots();
-    return snapshots.map((snapshot) => builder(snapshot.data() as Map<String, dynamic>, snapshot.id));
+    return snapshots.map(
+      (snapshot) =>
+          builder(snapshot.data() as Map<String, dynamic>, snapshot.id),
+    );
   }
 
   // One Time Request for the document
@@ -67,24 +73,65 @@ class FirestoreServices {
   }
 
   // One Time Request for a list of documents
+  // Future<List<T>> getCollection<T>({
+  //   required String path, // users/$userId/products  " Odd "
+  //   required T Function(Map<String, dynamic> data, String documentId) builder,
+  //   Query Function(Query query)? queryBuilder,
+  //   int Function(T lhs, T rhs)? sort,
+  // }) async {
+  //   Query query = firestore.collection(path);
+  //   if (queryBuilder != null) {
+  //     query = queryBuilder(query);
+  //   }
+  //   final snapshots = await query.get();
+  //   final result = snapshots.docs
+  //       .map((snapshot) => builder(snapshot.data() as Map<String, dynamic>, snapshot.id))
+  //       .where((value) => value != null)
+  //       .toList();
+  //   if (sort != null) {
+  //     result.sort(sort);
+  //   }
+  //   return result;
+  // }
+
+  // ✅ إضافة Pagination للـ getCollection
   Future<List<T>> getCollection<T>({
-    required String path, // users/$userId/products  " Odd "
+    required String path,
     required T Function(Map<String, dynamic> data, String documentId) builder,
     Query Function(Query query)? queryBuilder,
     int Function(T lhs, T rhs)? sort,
+    int? limit, // ✅ جديد
+    DocumentSnapshot? startAfter, // ✅ جديد
   }) async {
     Query query = firestore.collection(path);
+
     if (queryBuilder != null) {
       query = queryBuilder(query);
     }
+
+    // ✅ إضافة limit
+    if (limit != null) {
+      query = query.limit(limit);
+    }
+
+    // ✅ إضافة startAfter للصفحة التالية
+    if (startAfter != null) {
+      query = query.startAfterDocument(startAfter);
+    }
+
     final snapshots = await query.get();
     final result = snapshots.docs
-        .map((snapshot) => builder(snapshot.data() as Map<String, dynamic>, snapshot.id))
+        .map(
+          (snapshot) =>
+              builder(snapshot.data() as Map<String, dynamic>, snapshot.id),
+        )
         .where((value) => value != null)
         .toList();
+
     if (sort != null) {
       result.sort(sort);
     }
+
     return result;
   }
 }

@@ -33,7 +33,7 @@ class SalesInvoiceItem {
         id: map['productId'],
         name: map['productName'],
         category: '',
-        image: '',
+        // image: '',
         purchasePrice: map['buyPrice']?.toDouble() ?? 0,
         sellPrice: map['sellPrice']?.toDouble() ?? 0,
         pointPrice: 0,

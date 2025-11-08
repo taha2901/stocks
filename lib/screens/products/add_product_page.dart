@@ -52,7 +52,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         name: nameController.text,
         category: selectedCategory ?? '',
-        image: 'https://cdn-icons-png.flaticon.com/512/847/847969.png',
+        // image: 'https://cdn-icons-png.flaticon.com/512/847/847969.png',
         purchasePrice: double.parse(purchasePriceController.text),
         sellPrice: double.parse(sellPriceController.text),
         pointPrice: double.tryParse(pointPriceController.text) ?? 0,

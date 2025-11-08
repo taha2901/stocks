@@ -1,5 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:management_stock/core/services/sales_invoice_services.dart';
+import 'package:management_stock/core/services/sales/sales_invoice_services.dart';
 import 'package:management_stock/cubits/sales/states.dart';
 import 'package:management_stock/models/sales/sales_invoice_model.dart';
 

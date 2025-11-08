@@ -19,11 +19,6 @@ class _SalesInvoicesListScreenState extends State<SalesInvoicesListScreen> {
   List<SalesInvoiceModel> filteredInvoices = [];
   List<SalesInvoiceModel> allInvoices = [];
 
-  @override
-  void initState() {
-    super.initState();
-    context.read<SalesInvoiceCubit>().fetchInvoices();
-  }
 
   @override
   void dispose() {

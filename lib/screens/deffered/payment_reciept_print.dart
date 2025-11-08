@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:printing/printing.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -27,177 +28,40 @@ class PaymentReceiptPrintWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('إيصال دفعة 🖨️'),
+        backgroundColor: const Color(0xFF2C2F48),
+        title: const Text('طباعة إيصال دفعة 🖨️'),
         actions: [
           IconButton(
             icon: const Icon(Icons.print),
             onPressed: () => _handlePrint(),
           ),
-          IconButton(
-            icon: const Icon(Icons.close),
-            onPressed: () => Navigator.pop(context),
-          ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 600),
-            child: _buildReceiptContent(),
+      body: Center(
+        child: ElevatedButton.icon(
+          onPressed: () => _handlePrint(),
+          icon: const Icon(Icons.print),
+          label: const Text('طباعة الإيصال'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.green,
+            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
           ),
         ),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _handlePrint(),
-        label: const Text('طباعة'),
-        icon: const Icon(Icons.print),
-      ),
-    );
-  }
-
-  Widget _buildReceiptContent() {
-    final now = DateTime.now();
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(color: Colors.grey[300]!),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      padding: const EdgeInsets.all(32),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Center(
-            child: Column(
-              children: [
-                const Text(
-                  'إيصال دفعة آجل',
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  '${now.day}/${now.month}/${now.year} - ${now.hour}:${now.minute}',
-                  style: const TextStyle(fontSize: 14, color: Colors.grey),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 32),
-          _buildInfoRow('العميل:', customerName),
-          const Divider(),
-          _buildInfoRow(
-            'تاريخ الفاتورة:',
-            '${invoiceDate.day}/${invoiceDate.month}/${invoiceDate.year}',
-          ),
-          const Divider(),
-          _buildInfoRow(
-            'إجمالي الفاتورة:',
-            '${totalAmount.toStringAsFixed(2)} جنيه',
-          ),
-          const Divider(),
-          _buildInfoRow(
-            'المدفوع سابقاً:',
-            '${previousPaid.toStringAsFixed(2)} جنيه',
-            valueColor: Colors.green,
-          ),
-          const Divider(),
-          _buildInfoRow(
-            'الدفعة الحالية:',
-            '${currentPayment.toStringAsFixed(2)} جنيه',
-            valueColor: Colors.blue,
-          ),
-          const Divider(thickness: 2),
-          _buildInfoRow(
-            'المتبقي:',
-            '${newRemaining.toStringAsFixed(2)} جنيه',
-            valueColor: newRemaining > 0 ? Colors.red : Colors.green,
-            isBold: true,
-          ),
-          if (notes != null && notes!.isNotEmpty) ...[
-            const SizedBox(height: 16),
-            const Divider(),
-            const Text(
-              'ملاحظات:',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-                color: Colors.black87,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              notes!,
-              style: const TextStyle(fontSize: 14, color: Colors.black54),
-            ),
-          ],
-          const SizedBox(height: 32),
-          const Divider(),
-          const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              Column(
-                children: [
-                  const SizedBox(height: 40),
-                  const Text('_________________'),
-                  const SizedBox(height: 4),
-                  const Text('توقيع العميل', style: TextStyle(fontSize: 12)),
-                ],
-              ),
-              Column(
-                children: [
-                  const SizedBox(height: 40),
-                  const Text('_________________'),
-                  const SizedBox(height: 4),
-                  const Text('توقيع المحاسب', style: TextStyle(fontSize: 12)),
-                ],
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInfoRow(String label, String value,
-      {Color? valueColor, bool isBold = false}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: isBold ? 18 : 16,
-              fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-              color: valueColor ?? Colors.black87,
-            ),
-          ),
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.black54,
-            ),
-          ),
-        ],
       ),
     );
   }
 
   Future<void> _handlePrint() async {
     final pdf = pw.Document();
-    final now = DateTime.now();
+    final currencyFormat = NumberFormat.currency(symbol: 'ج.م', decimalDigits: 2);
 
     pdf.addPage(
       pw.Page(
+        pageFormat: PdfPageFormat(
+          80 * PdfPageFormat.mm,
+          double.infinity,
+          marginAll: 5 * PdfPageFormat.mm,
+        ),
         textDirection: pw.TextDirection.rtl,
         theme: pw.ThemeData.withFont(
           base: await PdfGoogleFonts.cairoRegular(),
@@ -205,59 +69,164 @@ class PaymentReceiptPrintWidget extends StatelessWidget {
         ),
         build: (pw.Context context) {
           return pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            crossAxisAlignment: pw.CrossAxisAlignment.stretch,
             children: [
               pw.Center(
-                child: pw.Column(
+                child: pw.Text(
+                  'إيصال دفعة',
+                  style: pw.TextStyle(
+                    fontSize: 14,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                ),
+              ),
+              pw.SizedBox(height: 2),
+              pw.Center(
+                child: pw.Text(
+                  DateFormat('yyyy/MM/dd - hh:mm a').format(DateTime.now()),
+                  style: const pw.TextStyle(fontSize: 8),
+                ),
+              ),
+              pw.SizedBox(height: 4),
+              pw.Divider(thickness: 1),
+              pw.SizedBox(height: 4),
+              
+              _pdfRow('العميل:', customerName),
+              _pdfRow(
+                'تاريخ الفاتورة:',
+                DateFormat('yyyy/MM/dd').format(invoiceDate),
+              ),
+              
+              pw.SizedBox(height: 4),
+              pw.Divider(thickness: 1),
+              pw.SizedBox(height: 4),
+              
+              _pdfRow('إجمالي الفاتورة:', currencyFormat.format(totalAmount)),
+              _pdfRow('المدفوع سابقاً:', currencyFormat.format(previousPaid)),
+              _pdfRow('الدفعة الحالية:', currencyFormat.format(currentPayment)),
+              
+              pw.SizedBox(height: 4),
+              pw.Divider(thickness: 1.5),
+              pw.SizedBox(height: 4),
+              
+              pw.Padding(
+                padding: const pw.EdgeInsets.symmetric(vertical: 4),
+                child: pw.Row(
+                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                   children: [
                     pw.Text(
-                      'إيصال دفعة آجل',
+                      currencyFormat.format(newRemaining),
                       style: pw.TextStyle(
-                        fontSize: 28,
+                        fontSize: 12,
                         fontWeight: pw.FontWeight.bold,
                       ),
                     ),
-                    pw.SizedBox(height: 8),
-                    pw.Text('${now.day}/${now.month}/${now.year} - ${now.hour}:${now.minute}'),
+                    pw.Text(
+                      'المتبقي:',
+                      style: pw.TextStyle(
+                        fontSize: 11,
+                        fontWeight: pw.FontWeight.bold,
+                      ),
+                    ),
                   ],
                 ),
               ),
-              pw.SizedBox(height: 24),
-              _pdfInfoRow('العميل:', customerName),
-              pw.Divider(),
-              _pdfInfoRow('تاريخ الفاتورة:', '${invoiceDate.day}/${invoiceDate.month}/${invoiceDate.year}'),
-              pw.Divider(),
-              _pdfInfoRow('إجمالي الفاتورة:', '${totalAmount.toStringAsFixed(2)} جنيه'),
-              pw.Divider(),
-              _pdfInfoRow('المدفوع سابقاً:', '${previousPaid.toStringAsFixed(2)} جنيه'),
-              pw.Divider(),
-              _pdfInfoRow('الدفعة الحالية:', '${currentPayment.toStringAsFixed(2)} جنيه'),
-              pw.Divider(thickness: 2),
-              _pdfInfoRow('المتبقي:', '${newRemaining.toStringAsFixed(2)} جنيه', bold: true),
+              
               if (notes != null && notes!.isNotEmpty) ...[
-                pw.SizedBox(height: 16),
-                pw.Divider(),
-                pw.Text('ملاحظات:', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-                pw.SizedBox(height: 8),
-                pw.Text(notes!),
+                pw.SizedBox(height: 4),
+                pw.Divider(thickness: 1),
+                pw.SizedBox(height: 4),
+                pw.Text(
+                  'ملاحظات:',
+                  style: pw.TextStyle(
+                    fontSize: 9,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                ),
+                pw.SizedBox(height: 2),
+                pw.Text(
+                  notes!,
+                  style: const pw.TextStyle(fontSize: 8),
+                ),
               ],
+              
+              pw.SizedBox(height: 6),
+              pw.Divider(thickness: 1),
+              pw.SizedBox(height: 4),
+              
+              pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                children: [
+                  pw.Column(
+                    children: [
+                      pw.Text(
+                        '__________',
+                        style: const pw.TextStyle(fontSize: 8),
+                      ),
+                      pw.SizedBox(height: 2),
+                      pw.Text(
+                        'المحاسب',
+                        style: const pw.TextStyle(fontSize: 7),
+                      ),
+                    ],
+                  ),
+                  pw.Column(
+                    children: [
+                      pw.Text(
+                        '__________',
+                        style: const pw.TextStyle(fontSize: 8),
+                      ),
+                      pw.SizedBox(height: 2),
+                      pw.Text(
+                        'العميل',
+                        style: const pw.TextStyle(fontSize: 7),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              
+              pw.SizedBox(height: 6),
+              pw.Divider(thickness: 1),
+              pw.SizedBox(height: 2),
+              
+              pw.Center(
+                child: pw.Text(
+                  DateFormat('yyyy/MM/dd - hh:mm a').format(DateTime.now()),
+                  style: const pw.TextStyle(fontSize: 7),
+                ),
+              ),
             ],
           );
         },
       ),
     );
 
-    await Printing.layoutPdf(onLayout: (PdfPageFormat format) async => pdf.save());
+    await Printing.layoutPdf(
+      onLayout: (PdfPageFormat format) async => pdf.save(),
+    );
   }
 
-  pw.Widget _pdfInfoRow(String label, String value, {bool bold = false}) {
+  pw.Widget _pdfRow(String label, String value) {
     return pw.Padding(
-      padding: const pw.EdgeInsets.symmetric(vertical: 8),
+      padding: const pw.EdgeInsets.symmetric(vertical: 2),
       child: pw.Row(
         mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
         children: [
-          pw.Text(value, style: pw.TextStyle(fontWeight: bold ? pw.FontWeight.bold : pw.FontWeight.normal)),
-          pw.Text(label, style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+          pw.Expanded(
+            child: pw.Text(
+              value,
+              style: const pw.TextStyle(fontSize: 9),
+              overflow: pw.TextOverflow.clip,
+            ),
+          ),
+          pw.Text(
+            label,
+            style: pw.TextStyle(
+              fontSize: 9,
+              fontWeight: pw.FontWeight.bold,
+            ),
+          ),
         ],
       ),
     );
